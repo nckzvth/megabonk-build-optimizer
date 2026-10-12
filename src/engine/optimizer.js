@@ -300,8 +300,14 @@ export function evaluateOfferedUpgrade(currentBuildState, offer, objective = 'ba
     } else if (nextWeapons.length < 4) {
       nextWeapons.push({ name: offerName, level: 1 });
     } else {
-      // Replaces or upgrades lowest
-      existing ? existing.level += 1 : nextWeapons[0].level += 1;
+      // Slots full (4/4): simulate replacing the lowest-level equipped weapon
+      let minIdx = 0;
+      for (let i = 1; i < nextWeapons.length; i++) {
+        if (nextWeapons[i].level < nextWeapons[minIdx].level) {
+          minIdx = i;
+        }
+      }
+      nextWeapons[minIdx] = { name: offerName, level: 1 };
     }
   } else if (offerType === 'tome') {
     upgradeCategory = 'Tome';
@@ -311,7 +317,14 @@ export function evaluateOfferedUpgrade(currentBuildState, offer, objective = 'ba
     } else if (nextTomes.length < 4) {
       nextTomes.push({ name: offerName, level: 1 });
     } else {
-      nextTomes[0].level += 1;
+      // Slots full (4/4): simulate replacing the lowest-level equipped tome
+      let minIdx = 0;
+      for (let i = 1; i < nextTomes.length; i++) {
+        if (nextTomes[i].level < nextTomes[minIdx].level) {
+          minIdx = i;
+        }
+      }
+      nextTomes[minIdx] = { name: offerName, level: 1 };
     }
     const tObj = tomeMap.get(offerName.toLowerCase());
     if (tObj) bracketModified = tObj.bracket;

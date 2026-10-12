@@ -43,8 +43,8 @@ export default function UpgradeAdvisor({
   buildState,
   onApplyUpgrade
 }) {
-  // Advisor Mode: 'item_event' (up to 3 items) vs 'level_up' (4 mixed offers)
-  const [advisorMode, setAdvisorMode] = useState('item_event');
+  // Advisor Mode: 'level_up' (4 mixed offers, default) vs 'item_event' (up to 3 items)
+  const [advisorMode, setAdvisorMode] = useState('level_up');
 
   // Item Event Offers (up to 3 event choices)
   const [itemOffers, setItemOffers] = useState([
@@ -341,44 +341,32 @@ export default function UpgradeAdvisor({
         </div>
       )}
 
-      {/* 2. THE INTERACTIVE STAGE: UP TO 3 ITEM EVENT CHOICES OR 4 LEVEL-UP ROLLS (ZERO CARDS) */}
+      {/* 2. THE INTERACTIVE STAGE: ZERO LAYOUT SHIFT ARCHITECTURAL GRID */}
       <div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block">
               Interactive Advisor Stage
             </span>
             <div className="flex items-center gap-3">
               <h2 className="text-xl font-bold tracking-tight text-white">
-                {advisorMode === 'item_event' ? 'Item Event Selection' : 'Level-Up Progression Roll'}
+                {advisorMode === 'level_up' ? 'Level-Up Progression Roll' : 'Item Event Selection'}
               </h2>
               <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
-                {advisorMode === 'item_event' ? `${activeOffers.length} of 3 Item Choices` : `${activeOffers.length} of 4 Upgrade Slots`}
+                {advisorMode === 'level_up' ? '4 Upgrade Slots' : `${activeOffers.length} of 3 Item Choices`}
               </span>
             </div>
-            <p className="text-xs text-zinc-400 font-sans max-w-xl">
-              {advisorMode === 'item_event'
-                ? `Comparing up to 3 event items (chests, boss rewards, shrines) mathematically calibrated to ${objectives.find(o => o.id === activePurpose)?.label}.`
-                : `Evaluate standard 4-slot level-up offerings across Weapons, Tomes, and Items.`}
+            <p className="text-xs text-zinc-400 font-sans">
+              {advisorMode === 'level_up'
+                ? 'Evaluate 4 mixed upgrade offerings across Weapons, Tomes & Items.'
+                : `Compare up to 3 event drops across Chests, Bosses & Shrines calibrated to ${objectives.find(o => o.id === activePurpose)?.label}.`}
             </p>
           </div>
 
-          {/* Mode Switcher + Controls */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Apple Segmented Control */}
+          {/* Mode Switcher + Controls (Fixed dimensions, zero wrap) */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Apple Segmented Control - Level-Up FIRST, Item Event SECOND */}
             <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setAdvisorMode('item_event')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  advisorMode === 'item_event'
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <Package className="w-3.5 h-3.5" />
-                <span>Item Event (Up to 3)</span>
-              </button>
               <button
                 type="button"
                 onClick={() => setAdvisorMode('level_up')}
@@ -391,21 +379,19 @@ export default function UpgradeAdvisor({
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Level-Up Roll</span>
               </button>
-            </div>
-
-            {/* Add Slot Button if under cap */}
-            {((advisorMode === 'item_event' && itemOffers.length < 3) ||
-              (advisorMode === 'level_up' && levelUpOffers.length < 4)) && (
               <button
                 type="button"
-                onClick={addOfferSlot}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1"
-                title="Add Choice Slot"
+                onClick={() => setAdvisorMode('item_event')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  advisorMode === 'item_event'
+                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
               >
-                <Plus className="w-3.5 h-3.5 text-amber-400" />
-                <span>Add Choice</span>
+                <Package className="w-3.5 h-3.5" />
+                <span>Item Event (Up to 3)</span>
               </button>
-            )}
+            </div>
 
             {/* Quick Simulate / Roll */}
             <button
@@ -413,7 +399,7 @@ export default function UpgradeAdvisor({
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
             >
               <Dices className="w-3.5 h-3.5 text-amber-400" />
-              <span>{advisorMode === 'item_event' ? 'Simulate 3-Item Chest' : 'Simulate Roll'}</span>
+              <span>Simulate Roll</span>
             </button>
 
             {/* Math Proof Button */}
@@ -427,18 +413,17 @@ export default function UpgradeAdvisor({
           </div>
         </div>
 
-        {/* Open Architectural Columns (3 Columns for Item Event, 4 for Level-Up) */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advisorMode === 'item_event' ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-8 py-6 border-y border-white/[0.08]`}>
+        {/* Stable 4-Column Architectural Grid - Zero Width or Horizontal Layout Shift */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-6 border-y border-white/[0.08]">
           {activeOffers.map((offer, idx) => {
             const isWinner = bestChoice && bestChoice.name.toLowerCase() === offer.name.toLowerCase();
             const rankedEntry = rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase());
-            const itemDetail = advisorMode === 'item_event' ? itemMap.get(offer.name?.toLowerCase()) : null;
 
             return (
               <div key={offer.id || idx} className="space-y-3 relative flex flex-col justify-between">
                 <div className="space-y-3">
                   {/* Slot Number & Best Choice Tag */}
-                  <div className="flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center justify-between text-xs font-mono h-5">
                     <span className="text-zinc-600 tracking-wider">
                       {advisorMode === 'item_event' ? `ITEM 0${idx + 1}` : `SLOT 0${idx + 1}`}
                     </span>
@@ -470,7 +455,7 @@ export default function UpgradeAdvisor({
                   />
 
                   {/* Rarity & Type */}
-                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 h-5">
                     <select
                       value={offer.rarity}
                       onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
@@ -485,21 +470,16 @@ export default function UpgradeAdvisor({
                       {offer.type}
                     </span>
                   </div>
-
-                  {/* Clean Item Description Callout for Item Events */}
-                  {itemDetail && (
-                    <div className="text-[11px] text-zinc-400 leading-snug pt-1 font-sans border-t border-white/[0.04]">
-                      {itemDetail.description}
-                    </div>
-                  )}
                 </div>
 
-                {/* Mathematical Delta Preview */}
-                <div className="pt-4">
+                {/* Mathematical Delta Preview - Fixed Min Height for zero vertical shift */}
+                <div className="pt-4 min-h-[46px] flex flex-col justify-end">
                   {isWinner ? (
                     <div className="space-y-0.5">
                       <div className="text-emerald-400 font-mono font-bold text-sm">
-                        {bestChoice.dpsGainPct > 0 ? `+${bestChoice.dpsGainPct.toFixed(1)}% Net DPS` : `+${bestChoice.ehpGainPct.toFixed(1)}% Net EHP`}
+                        {bestChoice.dpsGainPct > 0
+                          ? `+${bestChoice.dpsGainPct.toFixed(1)}% Net DPS`
+                          : (bestChoice.ehpGainPct > 0 ? `+${bestChoice.ehpGainPct.toFixed(1)}% Net EHP` : 'Top Choice')}
                       </div>
                       <div className="text-xs font-mono text-amber-400/80">
                         {bestChoice.compositeScore.toFixed(0)} synergy pts
@@ -510,19 +490,53 @@ export default function UpgradeAdvisor({
                       {rankedEntry
                         ? (rankedEntry.dpsGainPct > 0
                             ? `+${rankedEntry.dpsGainPct.toFixed(1)}% DPS`
-                            : `+${rankedEntry.ehpGainPct.toFixed(1)}% EHP`) + ` (${rankedEntry.compositeScore.toFixed(0)} pts)`
+                            : (rankedEntry.ehpGainPct > 0 ? `+${rankedEntry.ehpGainPct.toFixed(1)}% EHP` : '—')) + ` (${rankedEntry.compositeScore.toFixed(0)} pts)`
                         : '—'}
                     </div>
                   )}
 
-                  {/* Glowing gold baseline indicator for the winning choice */}
-                  {isWinner && (
-                    <div className="h-0.5 w-full bg-amber-400 shadow-md shadow-amber-400/50 rounded-full mt-2"></div>
-                  )}
+                  {/* Glowing gold baseline indicator (fixed height container so card height never shifts) */}
+                  <div className="h-0.5 w-full mt-2 rounded-full overflow-hidden">
+                    {isWinner ? (
+                      <div className="h-full w-full bg-amber-400 shadow-md shadow-amber-400/50"></div>
+                    ) : (
+                      <div className="h-full w-full bg-transparent"></div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
+
+          {/* 4th Column Placeholder in Item Event Mode: Guarantees columns 1, 2, and 3 maintain 100% identical 25% width */}
+          {advisorMode === 'item_event' && activeOffers.length < 4 && (
+            <div className="hidden lg:flex flex-col justify-center items-center p-6 border border-dashed border-white/[0.06] rounded-2xl text-center space-y-2 opacity-50 h-full min-h-[170px]">
+              {activeOffers.length < 3 ? (
+                <button
+                  type="button"
+                  onClick={addOfferSlot}
+                  className="flex flex-col items-center gap-2 text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/[0.04] group-hover:bg-amber-400/10 flex items-center justify-center transition-all">
+                    <Plus className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 group-hover:text-amber-300">
+                    + Add 3rd Item Slot
+                  </span>
+                </button>
+              ) : (
+                <>
+                  <Package className="w-5 h-5 text-zinc-600" />
+                  <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
+                    Event Limit: 3 Choices
+                  </div>
+                  <p className="text-[11px] text-zinc-600 font-sans max-w-[170px] leading-relaxed">
+                    Event chests, boss drops, and shrines offer a max of 3 items in Megabonk.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -532,7 +546,7 @@ export default function UpgradeAdvisor({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
-                {advisorMode === 'item_event' ? 'Optimal Event Item Decision' : 'Optimal Upgrade Decision'}
+                {advisorMode === 'level_up' ? 'Optimal Upgrade Decision' : 'Optimal Event Item Decision'}
               </span>
               <span className="text-zinc-600 font-mono">•</span>
               <span className="text-xs font-mono text-zinc-400">
@@ -593,7 +607,7 @@ export default function UpgradeAdvisor({
               onClick={() => onApplyUpgrade(bestChoice)}
               className="px-8 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-full text-sm transition-all shadow-xl shadow-amber-400/20 cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>{advisorMode === 'item_event' ? `Equip ${bestChoice.name} into Inventory` : `Equip ${bestChoice.name} in Loadout`}</span>
+              <span>{advisorMode === 'level_up' ? `Equip ${bestChoice.name} in Loadout` : `Equip ${bestChoice.name} into Inventory`}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
             <span className="text-xs text-zinc-500 font-mono">
@@ -607,7 +621,7 @@ export default function UpgradeAdvisor({
       <div className="space-y-4 pt-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-            {advisorMode === 'item_event' ? 'Item Event Options Ranked' : 'Full Roll Comparison Breakdown'}
+            {advisorMode === 'level_up' ? 'Full Roll Comparison Breakdown' : 'Item Event Options Ranked'}
           </h3>
           <span className="text-[11px] font-mono text-zinc-500">
             Ranked for {objectives.find(o => o.id === activePurpose)?.label}
