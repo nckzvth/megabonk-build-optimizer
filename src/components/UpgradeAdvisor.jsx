@@ -17,7 +17,9 @@ import {
   User,
   Sliders,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Flame,
+  ArrowRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { rankOfferedUpgrades } from '../engine/optimizer.js';
@@ -35,6 +37,8 @@ export default function UpgradeAdvisor({
   setCurrentWeapons,
   currentTomes = [],
   setCurrentTomes,
+  currentItems = [],
+  setCurrentItems,
   buildState,
   onApplyUpgrade
 }) {
@@ -102,10 +106,8 @@ export default function UpgradeAdvisor({
     setCharacter(newCharName);
     const charObj = characterMap.get(newCharName.toLowerCase());
     if (charObj && charObj.startingWeapon && setCurrentWeapons) {
-      // If player has starting weapon of old character or only 1 weapon, update or ensure starting weapon is equipped
       const existing = currentWeapons.find(w => w.name.toLowerCase() === charObj.startingWeapon.toLowerCase());
       if (!existing && currentWeapons.length > 0) {
-        // Replace weapon 0 with the starting weapon of new character
         const updated = [...currentWeapons];
         updated[0] = { name: charObj.startingWeapon, level: updated[0].level || 1 };
         setCurrentWeapons(updated);
@@ -125,7 +127,7 @@ export default function UpgradeAdvisor({
     }));
     setOffers(newOffers);
     confetti({
-      particleCount: 40,
+      particleCount: 35,
       spread: 60,
       origin: { y: 0.6 }
     });
@@ -160,100 +162,54 @@ export default function UpgradeAdvisor({
   };
 
   const objectives = [
-    { id: 'leaderboard', label: 'Leaderboard God', desc: 'Prioritizes XP, Luck, Curse & Chaos for endless record runs', icon: Trophy },
-    { id: 'balanced', label: 'Balanced', desc: 'Maximizes DPS while protecting EHP', icon: Shield },
-    { id: 'dps_pure', label: 'Glass Cannon', desc: '100% focused on maximum DPS', icon: Swords },
-    { id: 'tank_thorns', label: 'Immortal Tank', desc: 'Prioritizes Armor, Max HP, and Thorns', icon: Shield },
-    { id: 'crit_burst', label: 'Overcrit Burst', desc: 'Focuses on Precision & Megacrit scaling', icon: Crosshair },
-    { id: 'speed_farming', label: 'Economy Farm', desc: 'Favors Gold & Silver meta farming', icon: Zap },
+    { id: 'leaderboard', label: '👑 Leaderboard God', desc: 'Prioritizes XP, Luck, Curse & Chaos for endless record runs' },
+    { id: 'dps_pure', label: '⚔️ Glass Cannon', desc: '100% focused on maximum DPS' },
+    { id: 'balanced', label: '🛡️ Balanced', desc: 'Maximizes DPS while protecting EHP' },
+    { id: 'tank_thorns', label: '🗿 Immortal Tank', desc: 'Prioritizes Armor, Max HP, and Thorns' },
+    { id: 'crit_burst', label: '🎯 Overcrit Burst', desc: 'Focuses on Precision & Megacrit scaling' },
+    { id: 'speed_farming', label: '⚡ Economy Farm', desc: 'Favors Gold & Silver meta farming' },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* 1. FIRST OPTION: PROMINENT CHARACTER & RUN LEVEL SELECTOR */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border-2 border-amber-500/60 rounded-2xl p-5 shadow-2xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 font-black text-xl shadow-lg shadow-amber-500/20">
-              <User className="w-5 h-5 text-amber-400" />
+    <div className="space-y-8 max-w-6xl mx-auto">
+      {/* 1. APPLE-STYLE UNIFIED RUN CONSOLE */}
+      <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 backdrop-blur-2xl shadow-xl transition-all">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          {/* Hero Picker */}
+          <div className="md:col-span-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                Hero Character
+              </span>
+              <button
+                onClick={() => setShowSyncInfo(!showSyncInfo)}
+                className="text-[11px] text-zinc-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <Info className="w-3 h-3" /> Sync info
+              </button>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
-                  Step 1: Current Run Setup
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
-                  SELECT YOUR CHARACTER
-                </span>
-              </div>
-              <h2 className="text-lg md:text-xl font-heading font-black text-white">
-                Choose Character & Hero Level
-              </h2>
-            </div>
-          </div>
-
-          {/* Game Sync Info Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSyncInfo(!showSyncInfo)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition-all cursor-pointer"
-            >
-              <Info className="w-3.5 h-3.5 text-amber-400" />
-              <span>Can this sync with my game?</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Sync Info Banner */}
-        {showSyncInfo && (
-          <div className="mt-3 p-3.5 rounded-xl bg-slate-950/90 border border-slate-700 text-xs text-slate-300 leading-relaxed font-mono">
-            <div className="flex items-center gap-2 text-amber-400 font-bold mb-1">
-              <AlertCircle className="w-4 h-4" />
-              <span>Game Sync Status:</span>
-            </div>
-            <p>
-              *Megabonk* runs locally as a native Steam executable and does not expose a public browser API. For browser security reasons, web apps running on GitHub Pages cannot inspect desktop memory or read running processes.
-            </p>
-            <p className="mt-1 text-slate-400">
-              To make selection instantaneous during gameplay, this searchable dropdown lets you type any character name or upgrade in seconds!
-            </p>
-          </div>
-        )}
-
-        {/* Character, Level & Run Purpose Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-4">
-          {/* Searchable Character Dropdown */}
-          <div className="md:col-span-4">
-            <label className="text-xs font-mono uppercase text-slate-400 font-bold mb-1.5 block">
-              1. Hero Character:
-            </label>
             <SearchableSelect
               options={characterOptions}
               value={character}
               onChange={(val) => handleCharacterChange(val)}
-              placeholder="Search or pick a hero (e.g. Fox, CL4NK, Sir Oofie)..."
+              placeholder="Select hero..."
               categoryFilterEnabled={false}
               size="lg"
             />
+            <p className="text-xs text-zinc-400 leading-relaxed font-sans line-clamp-2">
+              <strong className="text-amber-400 font-medium">Passive:</strong> {buildState?.character?.passive}
+            </p>
           </div>
 
-          {/* Level Slider & Quick Numeric Input */}
-          <div className="md:col-span-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-mono uppercase text-slate-400 font-bold">
-                2. Run Level:
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 font-mono">Current:</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={level}
-                  onChange={(e) => setLevel(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
-                  className="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-0.5 text-sm font-bold text-amber-400 font-mono text-center focus:outline-none focus:border-amber-500"
-                />
-              </div>
+          {/* Level Slider */}
+          <div className="md:col-span-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                Run Level
+              </span>
+              <span className="font-mono font-bold text-sm text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                Lv. {level}
+              </span>
             </div>
             <input
               type="range"
@@ -261,78 +217,86 @@ export default function UpgradeAdvisor({
               max="100"
               value={level}
               onChange={(e) => setLevel(parseInt(e.target.value))}
-              className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-white/[0.08] rounded-full"
             />
-            <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
-              <span>Lv. 1 (Start)</span>
-              <span>Lv. 25 (Mid)</span>
-              <span>Lv. 50 (Boss)</span>
-              <span>Lv. 100 (Endless)</span>
+            <div className="flex justify-between text-[11px] text-zinc-500 font-mono">
+              <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1</button>
+              <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25</button>
+              <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50</button>
+              <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
             </div>
           </div>
 
-          {/* Run Purpose Dropdown */}
-          <div className="md:col-span-4 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-mono uppercase text-slate-400 font-bold">
-                3. Run Purpose:
-              </label>
-              <span className="text-[10px] text-amber-400 font-mono font-bold uppercase truncate max-w-[120px]">
-                {objectives.find(o => o.id === activePurpose)?.label}
+          {/* Run Purpose Goal */}
+          <div className="md:col-span-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                Run Purpose
+              </span>
+              <span className="text-[11px] font-mono font-semibold text-amber-400">
+                Active Goal
               </span>
             </div>
             <select
               value={activePurpose}
               onChange={(e) => setPurpose && setPurpose(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 hover:border-amber-500 rounded-xl px-3 py-2 text-xs md:text-sm font-bold text-amber-300 focus:outline-none focus:border-amber-400 cursor-pointer"
+              className="w-full bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3.5 py-2.5 text-xs text-amber-300 font-semibold focus:outline-none cursor-pointer transition-all"
             >
               {objectives.map((obj) => (
-                <option key={obj.id} value={obj.id} className="bg-slate-950 text-slate-200">
+                <option key={obj.id} value={obj.id} className="bg-zinc-950 text-zinc-200">
                   {obj.label}
                 </option>
               ))}
             </select>
-            <p className="text-[10px] text-slate-400 font-mono mt-1 truncate">
+            <p className="text-xs text-zinc-400 leading-relaxed truncate">
               {objectives.find(o => o.id === activePurpose)?.desc}
             </p>
           </div>
         </div>
 
-        {/* Hero Passive Preview & Loadout Drawer Toggle */}
-        <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-start sm:items-center gap-2">
-            <span className="font-bold text-amber-400 whitespace-nowrap">Passive:</span>
-            <span className="text-slate-300 font-medium">{buildState?.character?.passive}</span>
+        {/* Sync Info Note */}
+        {showSyncInfo && (
+          <div className="mt-4 pt-4 border-t border-white/[0.06] text-xs text-zinc-400 leading-relaxed font-sans">
+            <p>
+              Megabonk runs as a native desktop executable without a browser bridge. This optimizer lets you type or roll offered upgrades instantly to find the mathematical optimum in seconds.
+            </p>
           </div>
+        )}
 
+        {/* Collapsible Loadout Disclosure */}
+        <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs">
           <button
             onClick={() => setShowLoadoutDrawer(!showLoadoutDrawer)}
-            className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold cursor-pointer shrink-0"
+            className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 font-medium cursor-pointer"
           >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>{showLoadoutDrawer ? 'Hide Equipped Loadout' : 'View / Edit Equipped Loadout'}</span>
+            <Sliders className="w-3.5 h-3.5 text-amber-400" />
+            <span>{showLoadoutDrawer ? 'Hide Equipped Loadout' : `View Equipped Loadout (${currentWeapons.length} Weapons • ${currentTomes.length} Tomes)`}</span>
             {showLoadoutDrawer ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
+
+          <span className="text-zinc-500 font-mono text-[11px]">
+            {buildState?.weapons?.length || 0} Weapons active • {buildState?.totalDps?.toFixed(0)} DPS
+          </span>
         </div>
 
-        {/* Quick Loadout Drawer */}
+        {/* Loadout Chips Drawer */}
         {showLoadoutDrawer && (
-          <div className="mt-3 p-4 rounded-xl bg-slate-950/80 border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
             <div>
-              <span className="text-slate-400 uppercase font-bold block mb-2">Equipped Weapons (Up to 4):</span>
-              <div className="flex flex-wrap gap-2">
+              <span className="text-zinc-500 uppercase text-[10px] tracking-wider font-semibold block mb-2">Weapons:</span>
+              <div className="flex flex-wrap gap-1.5">
                 {currentWeapons.map((w, idx) => (
-                  <span key={w.name + idx} className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                  <span key={w.name + idx} className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-300">
                     ⚔️ {w.name} <strong className="text-amber-400">Lv.{w.level}</strong>
                   </span>
                 ))}
               </div>
             </div>
             <div>
-              <span className="text-slate-400 uppercase font-bold block mb-2">Equipped Tomes (Up to 4):</span>
-              <div className="flex flex-wrap gap-2">
+              <span className="text-zinc-500 uppercase text-[10px] tracking-wider font-semibold block mb-2">Tomes:</span>
+              <div className="flex flex-wrap gap-1.5">
                 {currentTomes.map((t, idx) => (
-                  <span key={t.name + idx} className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                  <span key={t.name + idx} className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-300">
                     📖 {t.name} <strong className="text-amber-400">Lv.{t.level}</strong>
                   </span>
                 ))}
@@ -342,336 +306,252 @@ export default function UpgradeAdvisor({
         )}
       </div>
 
-      {/* 2. OBJECTIVES & CONTROLS BANNER */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      {/* 2. OFFERED UPGRADES DECK */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-lg font-heading font-bold text-amber-400 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              Step 2: Enter Offered Upgrades
-            </h3>
-            <p className="text-sm text-slate-400 mt-0.5">
-              Type or search any upgrade below. The mathematical engine evaluates all 8 damage brackets to find the optimal choice.
+            <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              Offered Upgrades
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Enter the upgrades presented on your level-up screen to calculate the optimal choice.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
             <button
               onClick={rollRandomOffers}
-              className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-zinc-200 text-xs font-medium transition-all cursor-pointer"
             >
-              <Dices className="w-4 h-4" />
-              Simulate Random Roll
+              <Dices className="w-3.5 h-3.5 text-amber-400" />
+              <span>Simulate Roll</span>
             </button>
             <button
               onClick={() => setShowMathDetails(!showMathDetails)}
-              className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-semibold text-xs transition-all cursor-pointer border border-slate-700"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-zinc-200 text-xs font-medium transition-all cursor-pointer"
             >
-              <Calculator className="w-4 h-4 text-amber-400" />
-              {showMathDetails ? 'Hide Math' : 'Explain Math'}
+              <Calculator className="w-3.5 h-3.5 text-amber-400" />
+              <span>{showMathDetails ? 'Hide Proof' : 'Formula Proof'}</span>
             </button>
           </div>
         </div>
 
-        {/* Build Objective Switcher */}
-        <div className="pt-4">
-          <label className="text-xs uppercase font-mono text-slate-400 font-semibold mb-2 block">
-            Build Objective / Playstyle:
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            {objectives.map((obj) => {
-              const Icon = obj.icon;
-              const isSelected = activePurpose === obj.id;
-              return (
-                <button
-                  key={obj.id}
-                  onClick={() => setPurpose && setPurpose(obj.id)}
-                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-amber-500/15 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
-                      : 'bg-slate-950/60 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 font-bold text-xs">
-                    <Icon className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{obj.label}</span>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{obj.desc}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* 3. SEARCHABLE UPGRADE OFFER SLOTS */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono uppercase text-slate-400 font-bold">
-            Offered Choices (Slots 1 to {offers.length}) — Click to search by typing:
-          </span>
-          {offers.length < 4 && (
-            <button
-              onClick={addOfferSlot}
-              className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add 4th Slot
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 4 Single-Layer Upgrade Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {offers.map((offer, idx) => {
             const isWinner = bestChoice && bestChoice.name.toLowerCase() === offer.name.toLowerCase();
             return (
               <div
                 key={offer.id || idx}
-                className={`relative p-4 rounded-xl border transition-all ${
+                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
                   isWinner
-                    ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
-                    : 'bg-slate-950 border-slate-800'
+                    ? 'bg-amber-500/[0.04] border-amber-400/60 ring-1 ring-amber-400/30 shadow-xl shadow-amber-500/10'
+                    : 'bg-white/[0.02] hover:bg-white/[0.04] border-white/[0.07]'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono font-bold text-slate-400">
-                    Offer Slot #{idx + 1}
-                  </span>
-                  {offers.length > 2 && (
-                    <button
-                      onClick={() => removeOfferSlot(idx)}
-                      className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+                      Slot #{idx + 1}
+                    </span>
+                    {offers.length > 2 && (
+                      <button
+                        onClick={() => removeOfferSlot(idx)}
+                        className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                        title="Remove slot"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Searchable Select */}
+                  <div className="space-y-2 mb-3">
+                    <SearchableSelect
+                      options={allChoices}
+                      value={offer.name}
+                      onChange={(newName, optObj) => handleOfferNameChange(idx, newName, optObj)}
+                      placeholder="Search upgrade..."
+                      categoryFilterEnabled={true}
+                    />
+
+                    {/* Rarity & Type */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={offer.rarity}
+                        onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-zinc-300 focus:outline-none cursor-pointer"
+                      >
+                        <option value="Common" className="bg-zinc-950">Common</option>
+                        <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
+                        <option value="Rare" className="bg-zinc-950">Rare</option>
+                        <option value="Legendary" className="bg-zinc-950">Legendary</option>
+                      </select>
+
+                      <span className="text-[10px] font-mono uppercase px-2 py-1 rounded bg-white/[0.04] text-zinc-400 border border-white/[0.06] shrink-0">
+                        {offer.type}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Slot Status / Score */}
+                <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                  {isWinner ? (
+                    <span className="text-amber-400 font-semibold text-[11px] flex items-center gap-1">
+                      ★ Best Pick
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500 text-[11px]">Option #{idx + 1}</span>
+                  )}
+                  {bestChoice && isWinner ? (
+                    <span className="text-emerald-400 font-mono font-bold text-[11px]">
+                      +{bestChoice.dpsGainPct.toFixed(1)}% DPS
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500 font-mono text-[11px]">
+                      {rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase())?.dpsGainPct
+                        ? `+${rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase())?.dpsGainPct.toFixed(1)}%`
+                        : '—'}
+                    </span>
                   )}
                 </div>
-
-                {/* SEARCHABLE DROPDOWN COMPONENT */}
-                <div className="space-y-2">
-                  <SearchableSelect
-                    options={allChoices}
-                    value={offer.name}
-                    onChange={(newName, optObj) => handleOfferNameChange(idx, newName, optObj)}
-                    placeholder="Search weapon, tome, or item..."
-                    categoryFilterEnabled={true}
-                  />
-
-                  {/* Rarity Selector */}
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={offer.rarity}
-                      onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-slate-300 focus:outline-none cursor-pointer"
-                    >
-                      <option value="Common">Common</option>
-                      <option value="Uncommon">Uncommon</option>
-                      <option value="Rare">Rare</option>
-                      <option value="Legendary">Legendary</option>
-                    </select>
-
-                    <span className="text-[10px] font-mono uppercase px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700 shrink-0">
-                      {offer.type}
-                    </span>
-                  </div>
-                </div>
-
-                {isWinner && (
-                  <div className="mt-3 pt-2 border-t border-amber-500/30 flex items-center justify-between text-xs text-amber-400 font-bold">
-                    <span className="flex items-center gap-1">
-                      <Trophy className="w-3.5 h-3.5" /> Recommended
-                    </span>
-                    <span className="font-mono">+{bestChoice.dpsGainPct.toFixed(1)}% DPS</span>
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* 4. REROLL / SKIP / PICK STRATEGIC ADVISOR */}
-      {rerollAdvice && (
-        <div
-          className={`p-4 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${
-            rerollAdvice.action === 'PICK'
-              ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-              : rerollAdvice.action === 'REROLL'
-              ? 'bg-amber-950/30 border-amber-500/40 text-amber-300'
-              : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`p-2 rounded-xl ${
-                rerollAdvice.action === 'PICK'
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : rerollAdvice.action === 'REROLL'
-                  ? 'bg-amber-500/20 text-amber-400'
-                  : 'bg-rose-500/20 text-rose-400'
-              }`}
-            >
-              {rerollAdvice.action === 'PICK' ? (
-                <CheckCircle2 className="w-5 h-5" />
-              ) : (
-                <AlertCircle className="w-5 h-5" />
-              )}
-            </div>
-            <div>
+      {/* 3. APPLE KEYNOTE RECOMMENDATION SHOWCASE */}
+      {bestChoice && (
+        <div className="bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent border border-white/[0.09] rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
+          {/* Subtle warm glow background */}
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-3 max-w-xl">
               <div className="flex items-center gap-2">
-                <span className="font-heading font-black text-xs tracking-wider uppercase px-2 py-0.5 rounded bg-black/40">
-                  {rerollAdvice.action} RECOMMENDATION
+                <span className="px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                  ★ Optimal Upgrade
+                </span>
+                <span className="text-xs font-mono text-zinc-500">
+                  +{runnerUpDiffPct.toFixed(1)}% higher than #2
                 </span>
               </div>
-              <p className="text-xs md:text-sm font-medium mt-0.5">{rerollAdvice.message}</p>
-            </div>
-          </div>
 
-          {bestChoice && (
-            <button
-              onClick={() => onApplyUpgrade(bestChoice)}
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shadow-md shadow-emerald-500/20"
-            >
-              Equip Best Pick ({bestChoice.name})
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* 5. MATHEMATICAL WINNER SPOTLIGHT */}
-      {bestChoice && (
-        <div className="bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 border-2 border-amber-500/70 rounded-2xl p-6 shadow-2xl relative overflow-hidden animate-glow-gold">
-          <div className="absolute top-0 right-0 transform translate-x-8 -translate-y-8 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 uppercase tracking-widest mb-1">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                Rank #1 Mathematically Optimal Pick
-              </div>
-              <h3 className="text-2xl md:text-3xl font-heading font-black text-white flex items-center gap-3">
-                {bestChoice.name}
-                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <div>
+                <h3 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                  {bestChoice.name}
+                </h3>
+                <span className="text-xs font-mono uppercase text-zinc-400 block mt-1">
                   {bestChoice.type} • {bestChoice.rarity}
                 </span>
-              </h3>
-              <p className="text-sm text-slate-300 mt-2 max-w-2xl">
-                {bestChoice.bracketSaturationNote || 'Provides superior multiplicative value across independent brackets.'}
+              </div>
+
+              <p className="text-sm text-zinc-300 leading-relaxed font-sans">
+                {bestChoice.bracketSaturationNote || 'Provides the highest effective multiplier across uncrowded damage brackets.'}
               </p>
             </div>
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 font-mono">
-              <div className="p-2">
-                <div className="text-[10px] text-slate-400 uppercase">DPS Gain</div>
-                <div className="text-lg font-bold text-emerald-400">
-                  +{bestChoice.dpsGainPct.toFixed(1)}%
+            {/* Metrics & Action Column */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:items-end">
+              {/* Stat Pillars */}
+              <div className="grid grid-cols-4 gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center font-mono">
+                <div>
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">DPS</div>
+                  <div className="text-base font-bold text-emerald-400">
+                    +{bestChoice.dpsGainPct.toFixed(1)}%
+                  </div>
                 </div>
-                <div className="text-[10px] text-slate-500">+{bestChoice.dpsGain.toFixed(1)} dps</div>
+                <div className="border-l border-white/[0.06]">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">EHP</div>
+                  <div className="text-base font-bold text-cyan-400">
+                    +{bestChoice.ehpGainPct.toFixed(1)}%
+                  </div>
+                </div>
+                <div className="border-l border-white/[0.06]">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Synergy</div>
+                  <div className="text-base font-bold text-purple-400">
+                    {bestChoice.affectedWeaponsCount}/{buildState.weapons.length}
+                  </div>
+                </div>
+                <div className="border-l border-white/[0.06]">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</div>
+                  <div className="text-base font-bold text-amber-400">
+                    {bestChoice.compositeScore.toFixed(0)}
+                  </div>
+                </div>
               </div>
 
-              <div className="p-2">
-                <div className="text-[10px] text-slate-400 uppercase">EHP Gain</div>
-                <div className="text-lg font-bold text-cyan-400">
-                  +{bestChoice.ehpGainPct.toFixed(1)}%
-                </div>
-                <div className="text-[10px] text-slate-500">+{bestChoice.ehpGain.toFixed(0)} hp</div>
-              </div>
-
-              <div className="p-2">
-                <div className="text-[10px] text-slate-400 uppercase">Synergy</div>
-                <div className="text-lg font-bold text-purple-400">
-                  {bestChoice.affectedWeaponsCount} / {buildState.weapons.length}
-                </div>
-                <div className="text-[10px] text-slate-500">weapons scaled</div>
-              </div>
-
-              <div className="p-2">
-                <div className="text-[10px] text-slate-400 uppercase">Composite Score</div>
-                <div className="text-lg font-bold text-amber-400">
-                  {bestChoice.compositeScore.toFixed(1)}
-                </div>
-                <div className="text-[10px] text-slate-500">
-                  +{runnerUpDiffPct.toFixed(1)} over #2
-                </div>
-              </div>
+              {/* Big Apple CTA */}
+              <button
+                onClick={() => onApplyUpgrade(bestChoice)}
+                className="w-full sm:w-auto px-8 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold rounded-full text-sm transition-all shadow-lg shadow-amber-400/20 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Equip Upgrade ({bestChoice.name})</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6. RANKED COMPARISON TABLE */}
-      <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5">
-        <h3 className="text-base font-heading font-bold text-slate-200 mb-4 flex items-center gap-2">
+      {/* 4. RANKED COMPARISON TABLE */}
+      <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6">
+        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
-          Offered Choices Comparison Ranking
+          Offered Choices Ranking
         </h3>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-xs font-mono uppercase text-slate-400">
-                <th className="pb-3 px-3">Rank</th>
+              <tr className="border-b border-white/[0.06] text-zinc-500 font-mono uppercase text-[11px]">
+                <th className="pb-3 px-3">#</th>
                 <th className="pb-3 px-3">Upgrade</th>
                 <th className="pb-3 px-3">Type</th>
                 <th className="pb-3 px-3">DPS Gain</th>
                 <th className="pb-3 px-3">EHP Gain</th>
-                <th className="pb-3 px-3">Weapon Synergy</th>
-                <th className="pb-3 px-3">Composite Score</th>
+                <th className="pb-3 px-3">Synergy</th>
+                <th className="pb-3 px-3">Score</th>
                 <th className="pb-3 px-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-mono text-xs">
+            <tbody className="divide-y divide-white/[0.04] font-mono">
               {rankedOffers.map((offer, idx) => {
                 const isBest = idx === 0;
                 return (
                   <tr
                     key={offer.name + idx}
                     className={`transition-colors ${
-                      isBest ? 'bg-amber-500/5 font-semibold text-amber-300' : 'hover:bg-slate-800/30 text-slate-300'
+                      isBest ? 'bg-amber-400/[0.04] text-amber-300 font-medium' : 'text-zinc-300 hover:bg-white/[0.02]'
                     }`}
                   >
-                    <td className="py-3.5 px-3">
-                      <span
-                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                          isBest
-                            ? 'bg-amber-500 text-slate-950 font-black'
-                            : 'bg-slate-800 text-slate-400'
-                        }`}
-                      >
-                        {idx + 1}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 font-sans font-bold text-slate-100 flex items-center gap-2">
+                    <td className="py-3 px-3 text-zinc-500 font-bold">{idx + 1}</td>
+                    <td className="py-3 px-3 font-sans font-semibold text-white flex items-center gap-2">
                       {offer.name}
                       {isBest && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                          RECOMMENDED
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-400/15 text-amber-400 font-bold">
+                          BEST
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-3 text-slate-400">{offer.type}</td>
-                    <td className="py-3.5 px-3 text-emerald-400">
-                      +{offer.dpsGainPct.toFixed(1)}%
-                    </td>
-                    <td className="py-3.5 px-3 text-cyan-400">
-                      +{offer.ehpGainPct.toFixed(1)}%
-                    </td>
-                    <td className="py-3.5 px-3 text-purple-400">
-                      {offer.affectedWeaponsCount} scaled
-                    </td>
-                    <td className="py-3.5 px-3 font-bold text-amber-400">
-                      {offer.compositeScore.toFixed(1)}
-                    </td>
-                    <td className="py-3.5 px-3 text-right">
+                    <td className="py-3 px-3 text-zinc-500 uppercase text-[11px]">{offer.type}</td>
+                    <td className="py-3 px-3 text-emerald-400">+{offer.dpsGainPct.toFixed(1)}%</td>
+                    <td className="py-3 px-3 text-cyan-400">+{offer.ehpGainPct.toFixed(1)}%</td>
+                    <td className="py-3 px-3 text-purple-400">{offer.affectedWeaponsCount} scaled</td>
+                    <td className="py-3 px-3 font-bold text-amber-400">{offer.compositeScore.toFixed(1)}</td>
+                    <td className="py-3 px-3 text-right">
                       <button
                         onClick={() => onApplyUpgrade(offer)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                           isBest
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                            ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                            : 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-200'
                         }`}
                       >
-                        Pick
+                        Equip
                       </button>
                     </td>
                   </tr>
@@ -682,38 +562,34 @@ export default function UpgradeAdvisor({
         </div>
       </div>
 
-      {/* 7. EXPLAIN THE MATH ACCORDION */}
+      {/* 5. FORMULA PROOF ACCORDION */}
       {showMathDetails && (
-        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h4 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2 uppercase tracking-wider">
               <Calculator className="w-4 h-4 text-amber-400" />
               Mathematical Proof & 8-Bracket Formulation
             </h4>
-            <span className="text-xs font-mono text-slate-400">Megabonk Game Engine Mechanics</span>
+            <span className="text-xs font-mono text-zinc-500">Megabonk Multiplicative Engine</span>
           </div>
 
-          <div className="text-xs text-slate-300 space-y-3 font-mono leading-relaxed">
+          <div className="text-xs text-zinc-300 space-y-3 font-mono leading-relaxed">
             <p>
-              In Megabonk, damage does <strong className="text-white">NOT</strong> sum together into a single percentage pool.
-              Instead, upgrades are grouped into <strong className="text-amber-400">8 independent brackets</strong>.
-              Bonuses within the same bracket are additive, but bonuses between different brackets are <strong className="text-emerald-400">purely multiplicative</strong>:
+              In Megabonk, damage does <strong className="text-white">NOT</strong> sum into a single pool. Upgrades are divided into <strong className="text-amber-400">8 independent brackets</strong> that multiply together:
             </p>
 
-            <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-amber-300 font-bold text-center text-xs overflow-x-auto">
+            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-amber-300 font-bold text-center text-xs overflow-x-auto">
               Final Damage = Base × B1 (Damage Tome) × B2 (Passive) × B3 (Flat Items) × B4 (Main %) × B5 (Speed) × B6 (AtkSpd) × B7 (Crit) × B8 (AoE/Proj)
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                <span className="text-slate-400 font-bold block mb-1">Diminishing Returns Principle:</span>
-                Adding +50% into a bracket that already has +150% is only a <strong>+20% effective increase</strong> (2.5x → 3.0x).
-                Adding +50% into a new, uninvested bracket provides a full <strong>+50% effective increase</strong> (1.0x → 1.5x)!
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px]">
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <strong className="text-white block mb-1">Diminishing Returns:</strong>
+                Adding +50% into a saturated bracket provides marginal utility. Adding +50% into a fresh uncrowded bracket yields full multiplicative value.
               </div>
-
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                <span className="text-slate-400 font-bold block mb-1">Overcrit & Critical Expectation:</span>
-                Critical hits scale past 100% via Overcrit tiers. When Crit Chance reaches 140%, attacks guarantee Tier 1 Criticals with a 40% probability of Tier 2 Overcrits.
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <strong className="text-white block mb-1">Overcrit Probability:</strong>
+                Crit chance above 100% rolls for Tier 2 Megacrits (e.g., 140% crit = 100% Tier 1 + 40% Tier 2).
               </div>
             </div>
           </div>

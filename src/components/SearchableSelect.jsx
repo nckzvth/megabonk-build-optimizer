@@ -131,15 +131,15 @@ export default function SearchableSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between gap-2 bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-amber-500/80 rounded-xl px-3 py-2 text-left transition-all cursor-pointer shadow-sm ${
-          isOpen ? 'ring-2 ring-amber-500/50 border-amber-500' : ''
-        } ${size === 'lg' ? 'py-3 text-sm' : 'text-xs'}`}
+        className={`w-full flex items-center justify-between gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3 py-2 text-left transition-all cursor-pointer backdrop-blur-md ${
+          isOpen ? 'ring-1 ring-amber-400 border-amber-400 bg-white/[0.08]' : ''
+        } ${size === 'lg' ? 'py-2.5 text-sm' : 'text-xs'}`}
       >
         <div className="flex items-center gap-2 min-w-0">
           {selectedOption ? (
             <>
               {getTypeIcon(selectedOption.type)}
-              <span className="font-bold text-slate-100 truncate">
+              <span className="font-semibold text-zinc-100 truncate">
                 {selectedOption.name}
               </span>
               {selectedOption.rarity && (
@@ -149,32 +149,32 @@ export default function SearchableSelect({
               )}
             </>
           ) : (
-            <span className="text-slate-500 italic">{placeholder}</span>
+            <span className="text-zinc-500 italic">{placeholder}</span>
           )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-amber-400' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-amber-400' : ''}`} />
       </button>
 
       {/* Popover / Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-950 border border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#0c0c0e]/95 border border-white/[0.12] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100">
           {/* Search Box Header */}
-          <div className="p-2.5 border-b border-slate-800 bg-slate-900/60">
+          <div className="p-2.5 border-b border-white/[0.06] bg-white/[0.02]">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Type to search (e.g. Damage, Cheese, Bow)..."
+                placeholder="Search upgrade..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 transition-colors"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-2 text-slate-400 hover:text-white"
+                  className="absolute right-2.5 top-2 text-zinc-400 hover:text-white"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -183,16 +183,16 @@ export default function SearchableSelect({
 
             {/* Quick Category Filter Pills */}
             {categoryFilterEnabled && (
-              <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-slate-800/80 overflow-x-auto text-[10px]">
+              <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-white/[0.06] overflow-x-auto text-[10px]">
                 {['ALL', 'TOME', 'WEAPON', 'ITEM'].map(cat => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setActiveTab(cat)}
-                    className={`px-2 py-0.5 rounded-lg font-bold transition-all whitespace-nowrap cursor-pointer ${
+                    className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
                       activeTab === cat
-                        ? 'bg-amber-500 text-slate-950 shadow-sm'
-                        : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                        ? 'bg-amber-400 text-slate-950 shadow-sm'
+                        : 'bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
                     }`}
                   >
                     {cat === 'ALL' ? 'All' : cat === 'TOME' ? '📖 Tomes' : cat === 'WEAPON' ? '⚔️ Weapons' : '💎 Items'}
@@ -203,7 +203,7 @@ export default function SearchableSelect({
           </div>
 
           {/* Options List */}
-          <div ref={listRef} className="max-h-60 overflow-y-auto p-1 divide-y divide-slate-800/40">
+          <div ref={listRef} className="max-h-60 overflow-y-auto p-1 divide-y divide-white/[0.04]">
             {filteredOptions.length === 0 ? (
               <div className="p-4 text-center text-xs text-slate-500">
                 No matching options found for "<span className="text-amber-400 font-bold">{search}</span>"
