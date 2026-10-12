@@ -101,18 +101,9 @@ export default function UpgradeAdvisor({
 
   const { rankedOffers, bestChoice, runnerUpDiffPct, rerollAdvice } = evaluationResult;
 
-  // Handle Character Change: Auto-equip starting weapon if no weapons or new character
+  // Handle Character Change: Delegate to app-level handler which auto-equips starter weapon and cleans duplicates
   const handleCharacterChange = (newCharName) => {
     setCharacter(newCharName);
-    const charObj = characterMap.get(newCharName.toLowerCase());
-    if (charObj && charObj.startingWeapon && setCurrentWeapons) {
-      const existing = currentWeapons.find(w => w.name.toLowerCase() === charObj.startingWeapon.toLowerCase());
-      if (!existing && currentWeapons.length > 0) {
-        const updated = [...currentWeapons];
-        updated[0] = { name: charObj.startingWeapon, level: updated[0].level || 1 };
-        setCurrentWeapons(updated);
-      }
-    }
   };
 
   // Quick Roll Random Offers (simulate a level-up roll)
@@ -198,11 +189,35 @@ export default function UpgradeAdvisor({
           </div>
         </div>
 
-        {/* Level Slider */}
+        {/* Level Slider with Singular Steppers */}
         <div className="space-y-2 md:w-1/3">
           <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-zinc-500">
             <span>Level Progression</span>
-            <span className="text-amber-400 font-bold font-sans text-sm">Lv. {level}</span>
+            <div className="flex items-center gap-1.5 font-mono">
+              <button
+                type="button"
+                onClick={() => setLevel(Math.max(1, level - 1))}
+                disabled={level <= 1}
+                className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                title="Level Down (-1)"
+                aria-label="Level Down (-1)"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-amber-400 font-bold font-sans text-sm min-w-12 text-center">
+                Lv. {level}
+              </span>
+              <button
+                type="button"
+                onClick={() => setLevel(Math.min(100, level + 1))}
+                disabled={level >= 100}
+                className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                title="Level Up (+1)"
+                aria-label="Level Up (+1)"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
           <input
             type="range"

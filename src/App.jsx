@@ -6,7 +6,7 @@ import TierListsAndPriorities from './components/TierListsAndPriorities.jsx';
 import DatabaseExplorer from './components/DatabaseExplorer.jsx';
 import MetaBuilds from './components/MetaBuilds.jsx';
 import { calculateBuildStats } from './engine/optimizer.js';
-import { weaponMap, tomeMap, itemMap } from './data/megabonkData.js';
+import { characterMap, weaponMap, tomeMap, itemMap } from './data/megabonkData.js';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('advisor');
@@ -45,6 +45,42 @@ export default function App() {
     setTimeout(() => {
       setNotification(null);
     }, 3500);
+  };
+
+  // Change character: automatically swaps starter weapon and removes duplicates
+  const handleCharacterChange = (newCharName) => {
+    const oldCharObj = characterMap.get(character?.toLowerCase());
+    const oldStarter = oldCharObj?.startingWeapon;
+    const newCharObj = characterMap.get(newCharName?.toLowerCase());
+    const newStarter = newCharObj?.startingWeapon;
+
+    setCharacter(newCharName);
+
+    if (newStarter) {
+      setCurrentWeapons(prev => {
+        // Find existing level if newStarter was already equipped elsewhere in the build
+        const existingIdx = prev.findIndex(w => w.name.toLowerCase() === newStarter.toLowerCase());
+        const existingLevel = existingIdx !== -1 ? prev[existingIdx].level : (prev[0]?.level || 1);
+
+        // Auto-remove newStarter if already selected in the build to prevent duplicate weapons
+        let nonDuplicates = prev.filter(w => w.name.toLowerCase() !== newStarter.toLowerCase());
+
+        // If the first weapon was the old character's starter, replace it
+        if (oldStarter && nonDuplicates.length > 0 && nonDuplicates[0].name.toLowerCase() === oldStarter.toLowerCase()) {
+          nonDuplicates = nonDuplicates.slice(1);
+        } else if (nonDuplicates.length >= 4) {
+          // If all 4 slots are full, replace slot 0
+          nonDuplicates = nonDuplicates.slice(1);
+        }
+
+        // Equip new starter weapon in slot 0
+        return [{ name: newStarter, level: existingLevel }, ...nonDuplicates];
+      });
+
+      showToast(`Selected ${newCharName} • Equipped starter: ${newStarter}`);
+    } else {
+      showToast(`Selected ${newCharName}`);
+    }
   };
 
   // Apply upgrade selected from advisor
@@ -129,8 +165,7 @@ export default function App() {
   // Equip directly from Database
   const handleEquipDatabaseItem = (entry) => {
     if (entry.category === 'Character') {
-      setCharacter(entry.name);
-      showToast(`Selected Character: ${entry.name}!`);
+      handleCharacterChange(entry.name);
     } else if (entry.category === 'Weapon') {
       handleApplyUpgrade({ name: entry.name, type: 'weapon' });
     } else if (entry.category === 'Tome') {
@@ -171,7 +206,7 @@ export default function App() {
         {activeTab === 'advisor' && (
           <UpgradeAdvisor
             character={character}
-            setCharacter={setCharacter}
+            setCharacter={handleCharacterChange}
             level={level}
             setLevel={setLevel}
             purpose={purpose}
@@ -190,7 +225,7 @@ export default function App() {
         {activeTab === 'simulator' && (
           <BuildSimulator
             character={character}
-            setCharacter={setCharacter}
+            setCharacter={handleCharacterChange}
             level={level}
             setLevel={setLevel}
             currentWeapons={currentWeapons}

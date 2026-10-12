@@ -14,6 +14,7 @@ import {
   Trash2,
   Sliders,
   ChevronDown,
+  ChevronUp,
   Info
 } from 'lucide-react';
 import { characters, weapons, tomes, items } from '../data/megabonkData.js';
@@ -158,9 +159,33 @@ export default function BuildSimulator({
               </div>
 
               <div>
-                <div className="flex justify-between text-[11px] text-zinc-400 uppercase font-mono mb-1">
+                <div className="flex items-center justify-between text-[11px] text-zinc-400 uppercase font-mono mb-1">
                   <span>Level Track</span>
-                  <span className="text-amber-400 font-bold">Lv. {level}</span>
+                  <div className="flex items-center gap-1.5 font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setLevel(Math.max(1, level - 1))}
+                      disabled={level <= 1}
+                      className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                      title="Level Down (-1)"
+                      aria-label="Level Down (-1)"
+                    >
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-amber-400 font-bold font-sans text-sm min-w-10 text-center">
+                      Lv. {level}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setLevel(Math.min(100, level + 1))}
+                      disabled={level >= 100}
+                      className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                      title="Level Up (+1)"
+                      aria-label="Level Up (+1)"
+                    >
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -170,6 +195,12 @@ export default function BuildSimulator({
                   onChange={(e) => setLevel(parseInt(e.target.value))}
                   className="w-full accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full mt-2"
                 />
+                <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
+                  <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1 (Start)</button>
+                  <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25 (Mid)</button>
+                  <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50 (Boss)</button>
+                  <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
+                </div>
               </div>
             </div>
 
