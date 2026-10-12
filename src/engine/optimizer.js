@@ -465,51 +465,331 @@ export function rankOfferedUpgrades(currentBuildState, offers = [], objective = 
 }
 
 /**
- * Calculates marginal DPS increase for each available stat right now
- * (Generates the "What stat should I prioritize next?" radar)
+ * Calculates pure abstract stat priorities (unmixed with items/tomes)
+ * Evaluates how valuable adding raw stats is to the active build based on Purpose.
  */
-export function calculateStatPriorities(currentBuildState) {
-  const {
-    character,
-    level,
-    currentWeapons = [],
-    currentTomes = [],
-    currentItems = []
-  } = currentBuildState;
-  const baseDps = currentBuildState.totalDps || 50;
+export function calculatePureStatPriorities(currentBuildState, purpose = 'leaderboard') {
+  const { character, level, currentWeapons = [], currentTomes = [], currentItems = [] } = currentBuildState;
+  const baseDps = Math.max(1, currentBuildState.totalDps || 50);
+  const baseEhp = Math.max(1, currentBuildState.ehp || 100);
 
-  const testStats = [
-    { name: 'Damage Bracket (Damage Tome)', testTome: 'Damage Tome' },
-    { name: 'Attack Speed (Cooldown Tome)', testTome: 'Cooldown Tome' },
-    { name: 'Crit Chance (Precision Tome)', testTome: 'Precision Tome' },
-    { name: 'Projectiles (Quantity Tome)', testTome: 'Quantity Tome' },
-    { name: 'AoE Size (Size Tome)', testTome: 'Size Tome' },
-    { name: 'Duration (Duration Tome)', testTome: 'Duration Tome' },
-    { name: 'Flat Damage (Gym Sauce)', testItem: 'Gym Sauce' },
-    { name: 'Multiplicative % (Beer)', testItem: 'Beer' }
+  const rawStatsToEvaluate = [
+    {
+      id: 'attack_speed',
+      name: 'Attack Speed',
+      category: 'Offense',
+      icon: '⚡',
+      apply: (st) => ({ ...st, attackSpeed: st.attackSpeed + 15 }),
+      desc: 'Reduces weapon attack cooldowns across all equipped weapons.'
+    },
+    {
+      id: 'projectile_count',
+      name: 'Projectile Count',
+      category: 'Offense',
+      icon: '🎯',
+      apply: (st) => ({ ...st, projectileCount: st.projectileCount + 1 }),
+      desc: 'Adds extra projectiles/swings to projectile-compatible weapons.'
+    },
+    {
+      id: 'crit_chance',
+      name: 'Critical Strike Chance',
+      category: 'Offense',
+      icon: '💥',
+      apply: (st) => ({ ...st, critChance: st.critChance + 12 }),
+      desc: 'Increases crit chance, pushing past 100% into Overcrit multipliers.'
+    },
+    {
+      id: 'crit_damage',
+      name: 'Critical Strike Damage',
+      category: 'Offense',
+      icon: '⚔️',
+      apply: (st) => ({ ...st, critDamage: st.critDamage + 0.35 }),
+      desc: 'Increases the multiplier of all normal crits and Overcrits.'
+    },
+    {
+      id: 'damage_mult',
+      name: 'Universal Damage %',
+      category: 'Offense',
+      icon: '🔥',
+      apply: (st) => ({ ...st, damage: st.damage + 0.15 }),
+      desc: 'Universal multiplicative bracket scaling all attacks.'
+    },
+    {
+      id: 'aoe_size',
+      name: 'Area of Effect (Size)',
+      category: 'Offense',
+      icon: '⭕',
+      apply: (st) => ({ ...st, size: st.size + 0.18 }),
+      desc: 'Expands weapon hitboxes, aura radii, and explosion coverage.'
+    },
+    {
+      id: 'duration',
+      name: 'Attack Duration',
+      category: 'Offense',
+      icon: '⏳',
+      apply: (st) => ({ ...st, duration: st.duration + 0.20 }),
+      desc: 'Extends ground hazard and lingering weapon uptime.'
+    },
+    {
+      id: 'armor',
+      name: 'Armor (% Reduction)',
+      category: 'Defense',
+      icon: '🛡️',
+      apply: (st) => ({ ...st, armor: st.armor + 10 }),
+      desc: 'Reduces all incoming damage, scaling Effective HP hyperbolically.'
+    },
+    {
+      id: 'max_hp',
+      name: 'Maximum HP & Shield',
+      category: 'Defense',
+      icon: '❤️',
+      apply: (st) => ({ ...st, maxHp: st.maxHp + 35, shield: st.shield + 20 }),
+      desc: 'Expands your base health buffer against heavy swarm hits.'
+    },
+    {
+      id: 'movement_speed',
+      name: 'Movement Speed',
+      category: 'Utility',
+      icon: '👟',
+      apply: (st) => ({ ...st, movementSpeed: st.movementSpeed + 0.15 }),
+      desc: 'Increases dodge agility and activates speed-to-damage scalers.'
+    },
+    {
+      id: 'xp_gain',
+      name: 'XP Velocity & Level Scaling',
+      category: 'Leaderboard',
+      icon: '⭐',
+      apply: (st) => ({ ...st, xpGain: st.xpGain + 0.20 }),
+      desc: 'Crucial for reaching Lv.100+ on competitive endless leaderboards.'
+    },
+    {
+      id: 'luck',
+      name: 'Luck (Drop & Shrine Tier)',
+      category: 'Leaderboard',
+      icon: '🍀',
+      apply: (st) => ({ ...st, luck: st.luck + 12 }),
+      desc: 'Directly dictates shrine tier quality and legendary drop rates.'
+    },
+    {
+      id: 'cursed_density',
+      name: 'Enemy Density (Curse)',
+      category: 'Leaderboard',
+      icon: '💀',
+      apply: (st) => ({ ...st, difficulty: (st.difficulty || 1.0) + 0.15 }),
+      desc: 'Spawns larger mob waves for astronomical XP shard farming.'
+    }
   ];
 
-  return testStats.map(s => {
-    let testTomes = [...currentTomes.map(t => ({ ...t }))];
-    let testItems = [...currentItems.map(i => ({ ...i }))];
+  return rawStatsToEvaluate.map(stat => {
+    // Clone and test
+    const baseCalculated = calculateBuildStats(character.name, level, currentWeapons, currentTomes, currentItems);
+    
+    // Evaluate simulated stats
+    const simulatedState = {
+      ...baseCalculated,
+      stats: stat.apply({ ...baseCalculated.stats })
+    };
 
-    if (s.testTome) {
-      const ex = testTomes.find(t => t.name === s.testTome);
-      if (ex) ex.level += 1;
-      else testTomes.push({ name: s.testTome, level: 1 });
-    }
-    if (s.testItem) {
-      const ex = testItems.find(i => i.name === s.testItem);
-      if (ex) ex.count += 1;
-      else testItems.push({ name: s.testItem, count: 1 });
+    // Recompute DPS & EHP with modified stat
+    const nextSim = calculateBuildStats(
+      character.name,
+      level,
+      currentWeapons,
+      currentTomes,
+      currentItems
+    );
+    // Directly apply the stat delta onto calculation
+    const modStats = stat.apply({ ...nextSim.stats });
+    
+    // Compute marginal DPS
+    let simDps = baseDps;
+    if (stat.id === 'attack_speed') simDps = baseDps * (modStats.attackSpeed / Math.max(1, baseCalculated.stats.attackSpeed));
+    else if (stat.id === 'damage_mult') simDps = baseDps * (modStats.damage / Math.max(0.1, baseCalculated.stats.damage));
+    else if (stat.id === 'projectile_count') simDps = baseDps * 1.15;
+    else if (stat.id === 'crit_chance') simDps = baseDps * (1 + (modStats.critChance / 100) * 0.4);
+    else if (stat.id === 'crit_damage') simDps = baseDps * 1.08;
+    else if (stat.id === 'aoe_size') simDps = baseDps * 1.09;
+    else if (stat.id === 'duration') simDps = baseDps * 1.05;
+    else if (stat.id === 'movement_speed' && character.name === 'Calcium') simDps = baseDps * 1.12;
+
+    const dpsGainPct = Math.max(0, ((simDps - baseDps) / baseDps) * 100);
+
+    // Compute marginal EHP
+    const armorRed = Math.min(0.85, Math.max(0, modStats.armor / 100));
+    const evasRed = Math.min(0.75, Math.max(0, modStats.evasion / 100));
+    const simEhp = (modStats.maxHp + modStats.shield) / ((1 - armorRed) * (1 - evasRed));
+    const ehpGainPct = Math.max(0, ((simEhp - baseEhp) / baseEhp) * 100);
+
+    // Weight by selected Purpose
+    let purposeMultiplier = 1.0;
+    let purposeBonus = 0;
+
+    if (purpose === 'leaderboard') {
+      if (['xp_gain', 'luck', 'cursed_density'].includes(stat.id)) {
+        purposeMultiplier = 3.5;
+        purposeBonus = 35;
+      } else if (['projectile_count', 'attack_speed', 'aoe_size'].includes(stat.id)) {
+        purposeMultiplier = 1.8;
+      }
+    } else if (purpose === 'dps_pure') {
+      if (['damage_mult', 'attack_speed', 'projectile_count', 'crit_chance'].includes(stat.id)) {
+        purposeMultiplier = 2.8;
+        purposeBonus = 20;
+      }
+    } else if (purpose === 'tank_thorns') {
+      if (['armor', 'max_hp'].includes(stat.id)) {
+        purposeMultiplier = 3.2;
+        purposeBonus = 30;
+      }
+    } else if (purpose === 'crit_burst') {
+      if (['crit_chance', 'crit_damage'].includes(stat.id)) {
+        purposeMultiplier = 3.5;
+        purposeBonus = 35;
+      }
+    } else if (purpose === 'speed_farming') {
+      if (['movement_speed', 'xp_gain'].includes(stat.id)) {
+        purposeMultiplier = 3.0;
+        purposeBonus = 25;
+      }
     }
 
-    const testState = calculateBuildStats(character.name, level, currentWeapons, testTomes, testItems);
-    const dpsPct = ((testState.totalDps - baseDps) / Math.max(1, baseDps)) * 100;
+    const compositeScore = (dpsGainPct * 0.55 + ehpGainPct * 0.40) * purposeMultiplier + purposeBonus;
+
+    // Diminishing returns status
+    let status = 'High Value';
+    if (compositeScore >= 30) status = 'Essential Peak';
+    else if (compositeScore >= 18) status = 'Strong Scaling';
+    else if (compositeScore >= 10) status = 'Moderate';
+    else status = 'Low Marginal Yield';
 
     return {
-      statName: s.name,
-      marginalDpsGainPct: Math.max(0, dpsPct)
+      id: stat.id,
+      name: stat.name,
+      category: stat.category,
+      icon: stat.icon,
+      description: stat.desc,
+      dpsGainPct,
+      ehpGainPct,
+      compositeScore,
+      status
     };
-  }).sort((a, b) => b.marginalDpsGainPct - a.marginalDpsGainPct);
+  }).sort((a, b) => b.compositeScore - a.compositeScore);
 }
+
+/**
+ * Generates dynamic, purpose-specific Tier Lists for:
+ * 1. Tomes (All 23)
+ * 2. Weapons (All 29)
+ * 3. Items (All 78)
+ */
+export function calculateDynamicTierLists(currentBuildState, purpose = 'leaderboard') {
+  // 1. Evaluate All Tomes
+  const evaluatedTomes = tomes.map(t => {
+    const evalResult = evaluateOfferedUpgrade(currentBuildState, { name: t.name, type: 'tome' }, purpose);
+    let rationale = evalResult.bracketSaturationNote || 'Standard stat augment';
+    if (purpose === 'leaderboard' && ['XP Tome', 'Luck Tome', 'Cursed Tome', 'Chaos Tome'].includes(t.name)) {
+      rationale = 'Core World Record Quad Tome: essential for exponential level & drop scaling.';
+    } else if (purpose === 'dps_pure' && ['Damage Tome', 'Cooldown Tome', 'Quantity Tome', 'Precision Tome'].includes(t.name)) {
+      rationale = 'Top-tier pure damage multiplier across key offensive brackets.';
+    } else if (purpose === 'tank_thorns' && ['Armor Tome', 'HP Tome', 'Thorns Tome', 'Regen Tome'].includes(t.name)) {
+      rationale = 'Immortal defense & thorns reflect engine.';
+    }
+
+    return {
+      ...t,
+      score: evalResult.compositeScore,
+      dpsGainPct: evalResult.dpsGainPct,
+      ehpGainPct: evalResult.ehpGainPct,
+      rationale
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  // Group Tomes into Tiers
+  const tomesByTier = {
+    S: evaluatedTomes.slice(0, 4),
+    A: evaluatedTomes.slice(4, 9),
+    B: evaluatedTomes.slice(9, 16),
+    C: evaluatedTomes.slice(16)
+  };
+
+  // 2. Evaluate All Weapons
+  const evaluatedWeapons = weapons.map(w => {
+    const evalResult = evaluateOfferedUpgrade(currentBuildState, { name: w.name, type: 'weapon' }, purpose);
+    const charName = currentBuildState.character?.name?.toLowerCase() || '';
+    
+    // Character weapon affinity
+    let synergyBonus = 0;
+    let rationale = `${w.category} weapon. Scales with: ${w.affectedBy.join(', ')}`;
+    
+    if (w.name === currentBuildState.character?.startingWeapon) {
+      synergyBonus += 25;
+      rationale = `Signature starting weapon for ${currentBuildState.character?.name}. Highest native compatibility.`;
+    }
+    if (charName === 'cl4nk' && ['Revolver', 'Bow', 'Sniper Rifle', 'Dexecutioner'].includes(w.name)) {
+      synergyBonus += 20;
+      rationale = 'Extreme crit scaling paired with CL4NK passive.';
+    }
+    if (charName === 'sir oofie' && ['Sword', 'Aegis', 'Chunkers', 'Aura'].includes(w.name)) {
+      synergyBonus += 20;
+      rationale = 'Melee & defense synergy with Sir Oofie armor stacking.';
+    }
+    if (charName === 'calcium' && ['Bone', 'Flamewalker', 'Wireless Dagger'].includes(w.name)) {
+      synergyBonus += 20;
+      rationale = 'Scales with high-speed mobility kite playstyle.';
+    }
+
+    const finalScore = evalResult.compositeScore + synergyBonus;
+
+    return {
+      ...w,
+      score: finalScore,
+      dpsGainPct: evalResult.dpsGainPct,
+      ehpGainPct: evalResult.ehpGainPct,
+      rationale
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  const weaponsByTier = {
+    S: evaluatedWeapons.slice(0, 5),
+    A: evaluatedWeapons.slice(5, 12),
+    B: evaluatedWeapons.slice(12, 21),
+    C: evaluatedWeapons.slice(21)
+  };
+
+  // 3. Evaluate All Items
+  const evaluatedItems = items.map(it => {
+    const evalResult = evaluateOfferedUpgrade(currentBuildState, { name: it.name, type: 'item' }, purpose);
+    let rationale = it.description;
+    
+    if (purpose === 'leaderboard' && ['Echo Shard', 'Time Bracelet', 'Clover', 'Overpowered Lamp', 'Big Bonk', 'Giant Fork'].includes(it.name)) {
+      rationale = 'Endgame leaderboard staple: massive multiplier on drop frequency and kill capacity.';
+    }
+
+    return {
+      ...it,
+      score: evalResult.compositeScore,
+      dpsGainPct: evalResult.dpsGainPct,
+      ehpGainPct: evalResult.ehpGainPct,
+      rationale
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  const itemsByTier = {
+    S: evaluatedItems.slice(0, 10),
+    A: evaluatedItems.slice(10, 25),
+    B: evaluatedItems.slice(25, 50),
+    C: evaluatedItems.slice(50)
+  };
+
+  return {
+    tomesTierList: tomesByTier,
+    weaponsTierList: weaponsByTier,
+    itemsTierList: itemsByTier
+  };
+}
+
+// Backwards compatibility alias
+export function calculateStatPriorities(currentBuildState) {
+  return calculatePureStatPriorities(currentBuildState, 'leaderboard');
+}
+

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Header from './components/Header.jsx';
 import UpgradeAdvisor from './components/UpgradeAdvisor.jsx';
 import BuildSimulator from './components/BuildSimulator.jsx';
-import StatPriorityRadar from './components/StatPriorityRadar.jsx';
+import TierListsAndPriorities from './components/TierListsAndPriorities.jsx';
 import DatabaseExplorer from './components/DatabaseExplorer.jsx';
 import MetaBuilds from './components/MetaBuilds.jsx';
 import { calculateBuildStats } from './engine/optimizer.js';
@@ -11,23 +11,24 @@ import { weaponMap, tomeMap, itemMap } from './data/megabonkData.js';
 export default function App() {
   const [activeTab, setActiveTab] = useState('advisor');
 
-  // Build State
-  const [character, setCharacter] = useState('Fox');
+  // Build & Run State
+  const [character, setCharacter] = useState('Dicehead');
   const [level, setLevel] = useState(8);
+  const [purpose, setPurpose] = useState('leaderboard');
   const [currentWeapons, setCurrentWeapons] = useState([
-    { name: 'Firestaff', level: 4 },
-    { name: 'Aura', level: 3 },
+    { name: 'Dice', level: 4 },
+    { name: 'Firestaff', level: 3 },
     { name: 'Flamewalker', level: 2 },
-    { name: 'Katana', level: 2 }
+    { name: 'Black Hole', level: 2 }
   ]);
   const [currentTomes, setCurrentTomes] = useState([
-    { name: 'Damage Tome', level: 4 },
-    { name: 'Cooldown Tome', level: 3 },
-    { name: 'XP Tome', level: 3 },
-    { name: 'Luck Tome', level: 2 }
+    { name: 'XP Tome', level: 4 },
+    { name: 'Luck Tome', level: 3 },
+    { name: 'Cursed Tome', level: 3 },
+    { name: 'Chaos Tome', level: 2 }
   ]);
   const [currentItems, setCurrentItems] = useState([
-    { name: 'Gym Sauce', count: 1 },
+    { name: 'Echo Shard', count: 1 },
     { name: 'Clover', count: 2 },
     { name: 'Time Bracelet', count: 1 }
   ]);
@@ -92,6 +93,9 @@ export default function App() {
     setCurrentWeapons(preset.weapons.map(w => ({ name: w, level: 5 })));
     setCurrentTomes(preset.tomes.map(t => ({ name: t, level: 4 })));
     setCurrentItems(preset.keyItems.map(it => ({ name: it, count: 1 })));
+    if (preset.purpose) {
+      setPurpose(preset.purpose);
+    }
     setLevel(15);
     showToast(`Loaded preset build: ${preset.name}!`);
     setActiveTab('simulator');
@@ -99,26 +103,27 @@ export default function App() {
 
   // Reset to default
   const handleResetBuild = () => {
-    setCharacter('Fox');
+    setCharacter('Dicehead');
     setLevel(8);
+    setPurpose('leaderboard');
     setCurrentWeapons([
-      { name: 'Firestaff', level: 4 },
-      { name: 'Aura', level: 3 },
+      { name: 'Dice', level: 4 },
+      { name: 'Firestaff', level: 3 },
       { name: 'Flamewalker', level: 2 },
-      { name: 'Katana', level: 2 }
+      { name: 'Black Hole', level: 2 }
     ]);
     setCurrentTomes([
-      { name: 'Damage Tome', level: 4 },
-      { name: 'Cooldown Tome', level: 3 },
-      { name: 'XP Tome', level: 3 },
-      { name: 'Luck Tome', level: 2 }
+      { name: 'XP Tome', level: 4 },
+      { name: 'Luck Tome', level: 3 },
+      { name: 'Cursed Tome', level: 3 },
+      { name: 'Chaos Tome', level: 2 }
     ]);
     setCurrentItems([
-      { name: 'Gym Sauce', count: 1 },
+      { name: 'Echo Shard', count: 1 },
       { name: 'Clover', count: 2 },
       { name: 'Time Bracelet', count: 1 }
     ]);
-    showToast('Reset to default build.');
+    showToast('Reset to default Leaderboard build.');
   };
 
   // Equip directly from Database
@@ -149,6 +154,8 @@ export default function App() {
         setActiveTab={setActiveTab}
         buildState={buildState}
         onResetBuild={handleResetBuild}
+        purpose={purpose}
+        setPurpose={setPurpose}
       />
 
       {/* Toast Notification */}
@@ -167,6 +174,8 @@ export default function App() {
             setCharacter={setCharacter}
             level={level}
             setLevel={setLevel}
+            purpose={purpose}
+            setPurpose={setPurpose}
             currentWeapons={currentWeapons}
             setCurrentWeapons={setCurrentWeapons}
             currentTomes={currentTomes}
@@ -195,15 +204,19 @@ export default function App() {
         )}
 
         {activeTab === 'priorities' && (
-          <StatPriorityRadar
+          <TierListsAndPriorities
             buildState={buildState}
-            onQuickAddTome={handleApplyUpgrade}
+            purpose={purpose}
+            setPurpose={setPurpose}
+            onApplyUpgrade={handleApplyUpgrade}
           />
         )}
 
         {activeTab === 'meta' && (
           <MetaBuilds
             onLoadBuild={handleLoadBuild}
+            currentPurpose={purpose}
+            setPurpose={setPurpose}
           />
         )}
 

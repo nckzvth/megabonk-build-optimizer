@@ -29,6 +29,8 @@ export default function UpgradeAdvisor({
   setCharacter,
   level,
   setLevel,
+  purpose = 'leaderboard',
+  setPurpose,
   currentWeapons = [],
   setCurrentWeapons,
   currentTomes = [],
@@ -44,7 +46,7 @@ export default function UpgradeAdvisor({
     { id: 4, name: 'Moldy Cheese', rarity: 'Common', type: 'item' },
   ]);
 
-  const [objective, setObjective] = useState('leaderboard');
+  const activePurpose = purpose || 'leaderboard';
   const [showMathDetails, setShowMathDetails] = useState(false);
   const [showSyncInfo, setShowSyncInfo] = useState(false);
   const [showLoadoutDrawer, setShowLoadoutDrawer] = useState(false);
@@ -90,8 +92,8 @@ export default function UpgradeAdvisor({
 
   // Run mathematical evaluation
   const evaluationResult = useMemo(() => {
-    return rankOfferedUpgrades(buildState, offers.filter(o => o.name), objective);
-  }, [buildState, offers, objective]);
+    return rankOfferedUpgrades(buildState, offers.filter(o => o.name), activePurpose);
+  }, [buildState, offers, activePurpose]);
 
   const { rankedOffers, bestChoice, runnerUpDiffPct, rerollAdvice } = evaluationResult;
 
@@ -218,12 +220,12 @@ export default function UpgradeAdvisor({
           </div>
         )}
 
-        {/* Character & Level Controls */}
+        {/* Character, Level & Run Purpose Controls */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-4">
           {/* Searchable Character Dropdown */}
-          <div className="md:col-span-6">
+          <div className="md:col-span-4">
             <label className="text-xs font-mono uppercase text-slate-400 font-bold mb-1.5 block">
-              Hero Character:
+              1. Hero Character:
             </label>
             <SearchableSelect
               options={characterOptions}
@@ -236,10 +238,10 @@ export default function UpgradeAdvisor({
           </div>
 
           {/* Level Slider & Quick Numeric Input */}
-          <div className="md:col-span-6 flex flex-col justify-between">
+          <div className="md:col-span-4 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-mono uppercase text-slate-400 font-bold">
-                Run Level:
+                2. Run Level:
               </label>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400 font-mono">Current:</span>
@@ -263,10 +265,36 @@ export default function UpgradeAdvisor({
             />
             <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
               <span>Lv. 1 (Start)</span>
-              <span>Lv. 25 (Mid-game)</span>
+              <span>Lv. 25 (Mid)</span>
               <span>Lv. 50 (Boss)</span>
               <span>Lv. 100 (Endless)</span>
             </div>
+          </div>
+
+          {/* Run Purpose Dropdown */}
+          <div className="md:col-span-4 flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-mono uppercase text-slate-400 font-bold">
+                3. Run Purpose:
+              </label>
+              <span className="text-[10px] text-amber-400 font-mono font-bold uppercase truncate max-w-[120px]">
+                {objectives.find(o => o.id === activePurpose)?.label}
+              </span>
+            </div>
+            <select
+              value={activePurpose}
+              onChange={(e) => setPurpose && setPurpose(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-700 hover:border-amber-500 rounded-xl px-3 py-2 text-xs md:text-sm font-bold text-amber-300 focus:outline-none focus:border-amber-400 cursor-pointer"
+            >
+              {objectives.map((obj) => (
+                <option key={obj.id} value={obj.id} className="bg-slate-950 text-slate-200">
+                  {obj.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-400 font-mono mt-1 truncate">
+              {objectives.find(o => o.id === activePurpose)?.desc}
+            </p>
           </div>
         </div>
 
@@ -353,11 +381,11 @@ export default function UpgradeAdvisor({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {objectives.map((obj) => {
               const Icon = obj.icon;
-              const isSelected = objective === obj.id;
+              const isSelected = activePurpose === obj.id;
               return (
                 <button
                   key={obj.id}
-                  onClick={() => setObjective(obj.id)}
+                  onClick={() => setPurpose && setPurpose(obj.id)}
                   className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-amber-500/15 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'

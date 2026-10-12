@@ -1,15 +1,31 @@
 import React from 'react';
 import { Target, Cpu, BarChart3, Database, Trophy, ShieldAlert, Sparkles, RefreshCw } from 'lucide-react';
 
-export default function Header({ activeTab, setActiveTab, buildState, onResetBuild }) {
+export default function Header({
+  activeTab,
+  setActiveTab,
+  buildState,
+  onResetBuild,
+  purpose = 'leaderboard',
+  setPurpose
+}) {
   const char = buildState?.character?.name || 'Fox';
   const dps = buildState?.totalDps ? buildState.totalDps.toFixed(0) : '0';
   const ehp = buildState?.ehp ? buildState.ehp.toFixed(0) : '0';
 
+  const purposes = [
+    { id: 'leaderboard', label: '👑 Leaderboard God', short: '👑 Leaderboard' },
+    { id: 'dps_pure', label: '⚔️ Glass Cannon (DPS)', short: '⚔️ DPS' },
+    { id: 'balanced', label: '🛡️ Balanced (DPS+EHP)', short: '🛡️ Balanced' },
+    { id: 'tank_thorns', label: '🗿 Immortal Tank', short: '🗿 Tank' },
+    { id: 'crit_burst', label: '🎯 Overcrit Burst', short: '🎯 Crit' },
+    { id: 'speed_farming', label: '⚡ Economy & Speed', short: '⚡ Speed' },
+  ];
+
   const navItems = [
     { id: 'advisor', label: 'Upgrade Advisor', icon: Target, badge: 'MATH ENGINE' },
     { id: 'simulator', label: 'Build Simulator', icon: Cpu, badge: 'LOADOUT' },
-    { id: 'priorities', label: 'Stat Priorities', icon: BarChart3, badge: 'RADAR' },
+    { id: 'priorities', label: 'Tier Lists & Stats', icon: BarChart3, badge: 'S/A/B/C' },
     { id: 'meta', label: 'Meta Builds', icon: Trophy, badge: 'PRESETS' },
     { id: 'database', label: 'Megabonk Wiki DB', icon: Database, badge: '150 ITEMS' },
   ];
@@ -59,8 +75,28 @@ export default function Header({ activeTab, setActiveTab, buildState, onResetBui
           })}
         </nav>
 
-        {/* Live Build Quick Pill */}
+        {/* Live Build & Purpose Bar */}
         <div className="flex items-center gap-3 bg-slate-900/80 px-3.5 py-1.5 rounded-xl border border-slate-800 text-xs">
+          {/* Global Purpose Selector */}
+          {setPurpose && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400 font-mono hidden xl:inline">Goal:</span>
+              <select
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                className="bg-slate-950 border border-amber-500/50 text-amber-300 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-amber-400 cursor-pointer"
+                title="Change Run Purpose globally (updates all tier lists and recommendations)"
+              >
+                {purposes.map(p => (
+                  <option key={p.id} value={p.id} className="bg-slate-950 text-slate-200">
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <div className="h-4 w-px bg-slate-700 mx-1"></div>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-slate-400">Hero:</span>

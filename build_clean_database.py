@@ -403,6 +403,7 @@ meta_builds = [
     {
         'id': 'leaderboard_quad_god',
         'name': 'World Record Leaderboard (XP + Luck + Cursed + Chaos)',
+        'purpose': 'leaderboard',
         'description': 'The definitive #1 competitive Leaderboard World Record build. Locks in the 4 exponential scaling tomes: XP (level-up velocity), Luck (legendary chest/shrine rates), Cursed (maximum enemy density for infinite shard farm), and Chaos (random stat bonuses on every level). Paired with Dicehead Gamba or Fox for infinite late-game scaling.',
         'character': 'Dicehead',
         'weapons': ['Dice', 'Firestaff', 'Flamewalker', 'Black Hole'],
@@ -413,6 +414,7 @@ meta_builds = [
     {
         'id': 'holy_trinity',
         'name': 'The Holy Trinity (XP + Curse + Luck)',
+        'purpose': 'leaderboard',
         'description': 'The premier competitive endgame build. Stacks XP, Curse difficulty, and Luck to maximize item drops, shrine rarity, and rapid level progression.',
         'character': 'Fox',
         'weapons': ['Firestaff', 'Aura', 'Flamewalker', 'Katana'],
@@ -423,6 +425,7 @@ meta_builds = [
     {
         'id': 'cl4nk_overcrit',
         'name': 'CL4NK 100%+ Overcrit Shredder',
+        'purpose': 'crit_burst',
         'description': 'Stack Crit Chance above 100% to trigger Overcrits and Giant Fork Megacrits. Obliterates stage bosses in seconds.',
         'character': 'CL4NK',
         'weapons': ['Revolver', 'Bow', 'Sniper Rifle', 'Dexecutioner'],
@@ -433,6 +436,7 @@ meta_builds = [
     {
         'id': 'sir_oofie_immortal',
         'name': 'Sir Oofie Immortal Thorns Fortress',
+        'purpose': 'tank_thorns',
         'description': 'Combines +1% Armor per level with Spiky Shield (+2 Thorns per 1% Armor) and Chonkplate overheal to passively kill mobs by touching them.',
         'character': 'Sir Oofie',
         'weapons': ['Sword', 'Aegis', 'Chunkers', 'Aura'],
@@ -443,6 +447,7 @@ meta_builds = [
     {
         'id': 'calcium_hyper_speed',
         'name': 'Calcium Hyper-Sonic Speed Demon',
+        'purpose': 'speed_farming',
         'description': 'Converts massive movement speed into raw multiplicative damage via Speed Demon passive and Turbo Skates attack speed.',
         'character': 'Calcium',
         'weapons': ['Bone', 'Wireless Dagger', 'Flamewalker', 'Revolver'],
@@ -453,6 +458,7 @@ meta_builds = [
     {
         'id': 'amog_poison_apocalypse',
         'name': 'Amog Toxic Epidemic Cloud',
+        'purpose': 'balanced',
         'description': 'Infects whole screens with cascading poison corpse explosions using Moldy Cheese, Gas Mask, and Poison Flask.',
         'character': 'Amog',
         'weapons': ['Poison Flask', 'Flamewalker', 'Aura', 'Black Hole'],
@@ -463,6 +469,7 @@ meta_builds = [
     {
         'id': 'megachad_infinite_flex',
         'name': 'Megachad Infinite Flex Brawler',
+        'purpose': 'tank_thorns',
         'description': 'Utilizes the Flex invulnerability cooldown reduction to maintain near 100% damage immunity and 100% uptime on the +2.5% flexing damage multiplier.',
         'character': 'Megachad',
         'weapons': ['Aura', 'Axe', 'Dragon\'s Breath', 'Chunkers'],
