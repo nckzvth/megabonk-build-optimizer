@@ -228,6 +228,8 @@ export default function App() {
             setCharacter={handleCharacterChange}
             level={level}
             setLevel={setLevel}
+            purpose={purpose}
+            setPurpose={setPurpose}
             currentWeapons={currentWeapons}
             setCurrentWeapons={setCurrentWeapons}
             currentTomes={currentTomes}
@@ -235,6 +237,7 @@ export default function App() {
             currentItems={currentItems}
             setCurrentItems={setCurrentItems}
             buildState={buildState}
+            onApplyUpgrade={handleApplyUpgrade}
           />
         )}
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   User,
   Swords,
@@ -15,25 +15,58 @@ import {
   Sliders,
   ChevronDown,
   ChevronUp,
-  Info
+  Info,
+  Flame,
+  Ban,
+  AlertTriangle,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { characters, weapons, tomes, items } from '../data/megabonkData.js';
+import {
+  calculateDetailedStatPriorities,
+  calculateDynamicTierLists,
+  calculateBanList
+} from '../engine/optimizer.js';
 
 export default function BuildSimulator({
   character,
   setCharacter,
   level,
   setLevel,
+  purpose = 'leaderboard',
+  setPurpose,
   currentWeapons,
   setCurrentWeapons,
   currentTomes,
   setCurrentTomes,
   currentItems,
   setCurrentItems,
-  buildState
+  buildState,
+  onApplyUpgrade
 }) {
   const [itemSearch, setItemSearch] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('ALL');
+  const [activeStrategyTab, setActiveStrategyTab] = useState('shrines');
+
+  // Calculate Shrine Priorities (15 discrete blessings)
+  const shrinePriorities = useMemo(() => {
+    const detailed = calculateDetailedStatPriorities(buildState, purpose);
+    return detailed.shrineStats || [];
+  }, [buildState, purpose]);
+
+  // Calculate Item Priorities (ranked items calibrated to build)
+  const itemPriorities = useMemo(() => {
+    const dynamicTiers = calculateDynamicTierLists(buildState, purpose);
+    const sItems = dynamicTiers.itemsTierList?.S || [];
+    const aItems = dynamicTiers.itemsTierList?.A || [];
+    return [...sItems, ...aItems].sort((a, b) => b.score - a.score);
+  }, [buildState, purpose]);
+
+  // Calculate Dynamic Ban List (anti-synergies, zero compatibility, traps)
+  const banList = useMemo(() => {
+    return calculateBanList(buildState, purpose);
+  }, [buildState, purpose]);
 
   // Add weapon
   const handleAddWeapon = (weaponName) => {
@@ -117,8 +150,23 @@ export default function BuildSimulator({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <span className="text-zinc-500">Live Loadout:</span>
+        <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="text-zinc-500 uppercase tracking-wider text-[11px]">Goal:</span>
+            <select
+              value={purpose || 'leaderboard'}
+              onChange={(e) => setPurpose && setPurpose(e.target.value)}
+              className="bg-transparent border-b border-zinc-700 hover:border-zinc-400 text-amber-300 font-bold focus:outline-none cursor-pointer py-0.5 text-xs"
+            >
+              <option value="leaderboard" className="bg-zinc-950 text-zinc-200">👑 Leaderboard God</option>
+              <option value="dps_pure" className="bg-zinc-950 text-zinc-200">⚔️ Glass Cannon</option>
+              <option value="balanced" className="bg-zinc-950 text-zinc-200">🛡️ Balanced</option>
+              <option value="tank_thorns" className="bg-zinc-950 text-zinc-200">🗿 Immortal Tank</option>
+              <option value="crit_burst" className="bg-zinc-950 text-zinc-200">🎯 Overcrit Burst</option>
+              <option value="speed_farming" className="bg-zinc-950 text-zinc-200">⚡ Economy Farm</option>
+            </select>
+          </div>
+          <span className="text-zinc-600 hidden sm:inline">•</span>
           <span className="text-white font-bold">{character}</span>
           <span className="text-zinc-600">•</span>
           <span className="text-amber-400 font-semibold">Lv. {level}</span>
@@ -633,6 +681,276 @@ export default function BuildSimulator({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 3. LIVE STRATEGY DIRECTIVES: SHRINE PRIORITY, ITEM PRIORITY & ALWAYS BAN LIST */}
+      <div className="pt-8 border-t border-white/[0.08] space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
+              Live Tactical Directives
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Optimization Directives & Priority Lists
+            </h2>
+            <p className="text-xs text-zinc-400 font-sans">
+              Mathematical priority rankings dynamically calibrated to your active hero, equipped weapons, and build purpose.
+            </p>
+          </div>
+
+          {/* Segmented Tab Switcher */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setActiveStrategyTab('shrines')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeStrategyTab === 'shrines'
+                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <span>⛩️ Shrine Priorities</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
+                  {shrinePriorities.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveStrategyTab('items')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeStrategyTab === 'items'
+                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <span>🎁 Item Priorities</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
+                  {itemPriorities.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveStrategyTab('ban_list')}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeStrategyTab === 'ban_list'
+                    ? 'bg-rose-500 text-white font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Ban className="w-3.5 h-3.5" />
+                <span>ALWAYS Ban List</span>
+                {banList.length > 0 && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
+                    {banList.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTENT FOR TAB 1: SHRINE PRIORITIES */}
+        {activeStrategyTab === 'shrines' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
+              <span>SHRINE BLESSING RANKINGS (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
+              <span>15 TOTAL SHRINE BLESSINGS</span>
+            </div>
+            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+              {shrinePriorities.map((shrine, idx) => {
+                const isTop3 = idx < 3;
+                return (
+                  <div
+                    key={shrine.id}
+                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-start sm:items-center gap-3">
+                      <span className="font-mono text-xs text-zinc-600 font-bold min-w-6">
+                        0{idx + 1}
+                      </span>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{shrine.icon}</span>
+                          <span className={`font-bold ${isTop3 ? 'text-amber-400' : 'text-white'}`}>
+                            {shrine.shrineName}
+                          </span>
+                          <span className="font-mono text-zinc-300 font-semibold px-1.5 py-0.5 rounded bg-white/[0.04]">
+                            {shrine.inGameLabel}
+                          </span>
+                          {isTop3 && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 font-bold">
+                              TOP PICK
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 font-sans max-w-2xl">
+                          {shrine.shrineAdvice || shrine.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-5 font-mono text-xs shrink-0 self-end sm:self-center">
+                      <span className="text-emerald-400 font-semibold">
+                        +{shrine.dpsGainPct.toFixed(1)}% DPS
+                      </span>
+                      <span className="text-cyan-400">
+                        +{shrine.ehpGainPct.toFixed(1)}% EHP
+                      </span>
+                      <span className="text-amber-400 font-bold min-w-14 text-right">
+                        {shrine.compositeScore.toFixed(0)} pts
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* CONTENT FOR TAB 2: ITEM PRIORITIES */}
+        {activeStrategyTab === 'items' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
+              <span>KEY S & A TIER ITEMS TO HUNT (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
+              <span>TOP {itemPriorities.length} SCALING ITEMS</span>
+            </div>
+            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+              {itemPriorities.map((item, idx) => {
+                const isEquipped = currentItems.some(i => i.name.toLowerCase() === item.name.toLowerCase());
+                const isS = idx < 10;
+                return (
+                  <div
+                    key={item.name}
+                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-start sm:items-center gap-3">
+                      <span className="font-mono text-xs text-zinc-600 font-bold min-w-6">
+                        {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                      </span>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold ${isS ? 'text-amber-400' : 'text-zinc-200'}`}>
+                            {item.name}
+                          </span>
+                          <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-white/[0.04] uppercase">
+                            {item.rarity}
+                          </span>
+                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${isS ? 'bg-amber-400/15 text-amber-300' : 'bg-purple-400/15 text-purple-300'}`}>
+                            Tier {isS ? 'S' : 'A'}
+                          </span>
+                          {isEquipped && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 font-bold">
+                              EQUIPPED
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-400 font-sans max-w-2xl">
+                          {item.rationale || item.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-5 font-mono text-xs shrink-0 self-end sm:self-center">
+                      <span className="text-emerald-400 font-semibold">
+                        +{item.dpsGainPct.toFixed(1)}% DPS
+                      </span>
+                      <span className="text-cyan-400">
+                        +{item.ehpGainPct.toFixed(1)}% EHP
+                      </span>
+                      <span className="text-amber-400 font-bold min-w-14 text-right">
+                        {item.score.toFixed(0)} pts
+                      </span>
+                      <button
+                        onClick={() => handleAddItem(item.name)}
+                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.04] hover:bg-amber-400 hover:text-slate-950 text-zinc-300 transition-all cursor-pointer"
+                        title="Equip this item into your inventory"
+                      >
+                        + Equip
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* CONTENT FOR TAB 3: ALWAYS BAN LIST */}
+        {activeStrategyTab === 'ban_list' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
+              <span>ACTIVE BLACKLIST DIRECTIVES ({banList.length} ITEMS & UPGRADES)</span>
+              <span className="text-rose-400">SEAL AT ALTAR / SKIP IN ROLLS</span>
+            </div>
+            {banList.length === 0 ? (
+              <div className="py-8 text-center text-xs text-zinc-500 font-mono italic border-y border-white/[0.08]">
+                No critical anti-synergies detected for your current loadout.
+              </div>
+            ) : (
+              <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+                {banList.map((ban, idx) => {
+                  const isCritical = ban.severity === 'CRITICAL';
+                  const isWarning = ban.severity === 'WARNING';
+                  return (
+                    <div
+                      key={ban.id || idx}
+                      className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="pt-0.5">
+                          {isCritical ? (
+                            <span className="text-rose-400 text-sm">🛑</span>
+                          ) : isWarning ? (
+                            <span className="text-amber-400 text-sm">⚠️</span>
+                          ) : (
+                            <span className="text-zinc-500 text-sm">🗑️</span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold text-sm ${isCritical ? 'text-rose-400' : isWarning ? 'text-amber-300' : 'text-zinc-300'}`}>
+                              {ban.name}
+                            </span>
+                            <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-white/[0.04]">
+                              {ban.type}
+                            </span>
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                              isCritical
+                                ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                : isWarning
+                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                : 'bg-zinc-700/30 text-zinc-400'
+                            }`}>
+                              {ban.badge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-sans max-w-2xl leading-relaxed">
+                            {ban.reason}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase ${
+                          isCritical
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : isWarning
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : 'bg-white/[0.04] text-zinc-400'
+                        }`}>
+                          {ban.action}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

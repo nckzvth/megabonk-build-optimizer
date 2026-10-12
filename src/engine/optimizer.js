@@ -1055,3 +1055,208 @@ export function calculateStatPriorities(currentBuildState) {
   return calculatePureStatPriorities(currentBuildState, 'leaderboard');
 }
 
+/**
+ * Calculates the dynamic ALWAYS Ban / Blacklist recommendations for the active run.
+ * Identifies:
+ * 1. Hard character anti-synergies (mechanics that actively break hero passives)
+ * 2. Zero-compatibility upgrades (stats that 0 of your 4 weapons can use)
+ * 3. Lethal traps / build traps based on run purpose
+ * 4. F-tier pool dilution items that lower RNG odds
+ */
+export function calculateBanList(currentBuildState, purpose = 'leaderboard') {
+  const bans = [];
+  const char = currentBuildState.character || {};
+  const charName = (char.name || '').toLowerCase();
+  const weapons = currentBuildState.weapons || [];
+
+  // Collect weapon tags
+  const allAffectedTags = new Set();
+  weapons.forEach(w => {
+    (w.affectedBy || []).forEach(t => allAffectedTags.add(t.toLowerCase().trim()));
+  });
+
+  const hasProjectileWeapons = allAffectedTags.has('projectile count');
+  const hasDurationWeapons = allAffectedTags.has('duration');
+  const hasSpeedWeapons = allAffectedTags.has('projectile speed');
+
+  // 1. CHARACTER-SPECIFIC ANTI-SYNERGIES (CRITICAL / GAME BREAKING)
+  if (charName === 'sir oofie') {
+    bans.push({
+      id: 'ban_evasion_oofie',
+      name: 'Evasion Tome',
+      type: 'Tome',
+      category: 'Anti-Synergy',
+      severity: 'CRITICAL',
+      badge: '🛑 Build Breaker',
+      reason: 'Evasion completely negates incoming hits, turning off Sir Oofie\'s on-hit Armor ramp and Thorns reflect engine.',
+      action: 'Always Ban'
+    });
+    bans.push({
+      id: 'ban_smoke_bomb',
+      name: 'Smoke Bomb & Ninja Tabi',
+      type: 'Item',
+      category: 'Anti-Synergy',
+      severity: 'CRITICAL',
+      badge: '🛑 Build Breaker',
+      reason: 'Grants passive dodge/evasion, sabotaging your Thorns retaliation frequency.',
+      action: 'Seal at Altar'
+    });
+  }
+
+  if (charName === 'megachad') {
+    bans.push({
+      id: 'ban_evasion_megachad',
+      name: 'Evasion Tome',
+      type: 'Tome',
+      category: 'Anti-Synergy',
+      severity: 'CRITICAL',
+      badge: '🛑 Build Breaker',
+      reason: 'Negating incoming hits prevents Megachad from triggering his Flex damage & attack speed uptime boost.',
+      action: 'Always Ban'
+    });
+  }
+
+  if (charName === 'calcium') {
+    bans.push({
+      id: 'ban_speed_reduction',
+      name: 'Lead Boots & Anvil',
+      type: 'Item',
+      category: 'Anti-Synergy',
+      severity: 'CRITICAL',
+      badge: '🛑 Build Breaker',
+      reason: 'Calcium converts movement speed directly into damage. Any movement speed penalty directly cuts your total DPS multiplier.',
+      action: 'Always Ban'
+    });
+  }
+
+  // 2. ZERO WEAPON COMPATIBILITY (100% WASTED ROLLS)
+  if (weapons.length > 0 && !hasProjectileWeapons) {
+    bans.push({
+      id: 'ban_quantity_tome',
+      name: 'Quantity Tome',
+      type: 'Tome',
+      category: 'Zero Synergy',
+      severity: 'WARNING',
+      badge: '⚠️ Zero Synergy',
+      reason: `None of your equipped weapons (${weapons.map(w => w.name).join(', ')}) fire extra projectiles. Adding Quantity Tome gives +0.0% DPS benefit.`,
+      action: 'Ban from Pool'
+    });
+  }
+
+  if (weapons.length > 0 && !hasDurationWeapons) {
+    bans.push({
+      id: 'ban_duration_tome',
+      name: 'Duration Tome',
+      type: 'Tome',
+      category: 'Zero Synergy',
+      severity: 'WARNING',
+      badge: '⚠️ Zero Synergy',
+      reason: `None of your ${weapons.length} weapons have lingering damage zones or hazard uptime. Duration Tome provides +0.0% combat benefit.`,
+      action: 'Ban from Pool'
+    });
+  }
+
+  if (weapons.length > 0 && !hasSpeedWeapons) {
+    bans.push({
+      id: 'ban_projectile_tome',
+      name: 'Projectile Tome',
+      type: 'Tome',
+      category: 'Zero Synergy',
+      severity: 'WARNING',
+      badge: '⚠️ Zero Synergy',
+      reason: 'None of your active weapons fire traveling missiles or skill projectiles.',
+      action: 'Ban from Pool'
+    });
+  }
+
+  // 3. RUN PURPOSE TRAPS
+  if (purpose !== 'leaderboard') {
+    bans.push({
+      id: 'ban_cursed_tome',
+      name: 'Cursed Tome',
+      type: 'Tome',
+      category: 'Lethal Trap',
+      severity: 'CRITICAL',
+      badge: '☠️ Lethal Trap',
+      reason: 'Increases enemy health, speed, and swarm quantity by up to 50% without giving you direct DPS. Only useful for endless XP farming on Leaderboard runs.',
+      action: 'Always Ban / Avoid'
+    });
+  }
+
+  if (purpose === 'dps_pure') {
+    bans.push({
+      id: 'ban_pure_defense_tomes',
+      name: 'Armor Tome & Shield Tome',
+      type: 'Tome',
+      category: 'Dilution',
+      severity: 'DILUTION',
+      badge: '🗑️ Pool Dilution',
+      reason: 'Pure defense stats that do not contribute to glass cannon multiplicative brackets, diluting offensive level-up rolls.',
+      action: 'Ban from Pool'
+    });
+    bans.push({
+      id: 'ban_borgar_dps',
+      name: 'Borgar & Bandage',
+      type: 'Item',
+      category: 'Dilution',
+      severity: 'DILUTION',
+      badge: '🗑️ Pool Dilution',
+      reason: 'Zero-damage defensive filler items that waste precious item chest slots.',
+      action: 'Seal at Altar'
+    });
+  }
+
+  if (purpose === 'tank_thorns') {
+    if (!bans.some(b => b.name === 'Evasion Tome')) {
+      bans.push({
+        id: 'ban_evasion_tank',
+        name: 'Evasion Tome',
+        type: 'Tome',
+        category: 'Anti-Synergy',
+        severity: 'CRITICAL',
+        badge: '🛑 Anti-Synergy',
+        reason: 'Avoiding hits prevents thorns damage from reflecting back onto attacking enemies.',
+        action: 'Always Ban'
+      });
+    }
+  }
+
+  if (purpose === 'leaderboard') {
+    bans.push({
+      id: 'ban_combat_filler',
+      name: 'Rusty Nail & Moldy Bread',
+      type: 'Item',
+      category: 'Dilution',
+      severity: 'DILUTION',
+      badge: '🗑️ Pool Dilution',
+      reason: 'Low-impact filler items that dilute chest offerings away from critical Quad Meta items (Echo Shard, Clover, Time Bracelet, Overpowered Lamp).',
+      action: 'Seal at Altar'
+    });
+  }
+
+  // 4. UNIVERSAL POOL DILUTION TRAPS (FOR ALMOST ALL BUILDS)
+  bans.push({
+    id: 'ban_knockback_tome',
+    name: 'Knockback Tome',
+    type: 'Tome',
+    category: 'DPS Reducer',
+    severity: 'DILUTION',
+    badge: '🗑️ DPS Reducer',
+    reason: 'Pushes mobs out of your weapon hitboxes (especially melee swings, auras, and hazard pools), actively decreasing sustained DPS.',
+    action: 'Always Ban'
+  });
+
+  bans.push({
+    id: 'ban_borgar_universal',
+    name: 'Borgar',
+    type: 'Item',
+    category: 'Trash Tier',
+    severity: 'DILUTION',
+    badge: '🗑️ Trash Tier',
+    reason: '+2% chance to drop food on kill is mathematically negligible compared to Lifesteal or passive HP Regen.',
+    action: 'Seal / Skip'
+  });
+
+  return bans;
+}
+
