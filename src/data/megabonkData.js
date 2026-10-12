@@ -2513,6 +2513,33 @@ export const db = {
   ],
   "metaBuilds": [
     {
+      "id": "leaderboard_quad_god",
+      "name": "World Record Leaderboard (XP + Luck + Cursed + Chaos)",
+      "description": "The definitive #1 competitive Leaderboard World Record build. Locks in the 4 exponential scaling tomes: XP (level-up velocity), Luck (legendary chest/shrine rates), Cursed (maximum enemy density for infinite shard farm), and Chaos (random stat bonuses on every level). Paired with Dicehead Gamba or Fox for infinite late-game scaling.",
+      "character": "Dicehead",
+      "weapons": [
+        "Dice",
+        "Firestaff",
+        "Flamewalker",
+        "Black Hole"
+      ],
+      "tomes": [
+        "XP Tome",
+        "Luck Tome",
+        "Cursed Tome",
+        "Chaos Tome"
+      ],
+      "keyItems": [
+        "Echo Shard",
+        "Clover",
+        "Time Bracelet",
+        "Overpowered Lamp",
+        "Big Bonk",
+        "Giant Fork"
+      ],
+      "difficulty": "World Record / Endless Scale"
+    },
+    {
       "id": "holy_trinity",
       "name": "The Holy Trinity (XP + Curse + Luck)",
       "description": "The premier competitive endgame build. Stacks XP, Curse difficulty, and Luck to maximize item drops, shrine rarity, and rapid level progression.",

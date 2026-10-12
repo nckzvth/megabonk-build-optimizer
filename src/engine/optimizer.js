@@ -86,8 +86,19 @@ export function calculateBuildStats(characterName, level = 1, currentWeapons = [
       stats.luck += tLevel * 8;
     } else if (tomeObj.name === 'XP Tome') {
       stats.xpGain += (tLevel * 12) / 100;
-    } else if (tomeObj.name === 'Attraction Tome') {
-      stats.pickupRange += (tLevel * 15) / 100;
+    } else if (tomeObj.name === 'Cursed Tome') {
+      stats.difficulty = (stats.difficulty || 1.0) + (tLevel * 10) / 100;
+    } else if (tomeObj.name === 'Chaos Tome') {
+      // Chaos Tome rolls random stat boosts on each level
+      stats.damage += (tLevel * 5) / 100;
+      stats.attackSpeed += tLevel * 5;
+      stats.critChance += tLevel * 3;
+      stats.size += (tLevel * 5) / 100;
+      stats.duration += (tLevel * 5) / 100;
+      stats.maxHp += tLevel * 10;
+      stats.armor += tLevel * 2;
+      stats.movementSpeed += (tLevel * 4) / 100;
+      stats.luck += tLevel * 4;
     }
   });
 
@@ -354,12 +365,25 @@ export function evaluateOfferedUpgrade(currentBuildState, offer, objective = 'ba
 
   // Calculate composite score based on objective
   let compositeScore = 0;
-  if (objective === 'dps_pure') {
+  if (objective === 'leaderboard') {
+    // Definitive Leaderboard Quad Meta: XP + Luck + Cursed + Chaos
+    let quadBonus = 0;
+    if (offerLower.includes('chaos tome') || offerLower === 'chaos tome') quadBonus += 45;
+    else if (offerLower.includes('xp tome') || offerLower === 'xp tome') quadBonus += 42;
+    else if (offerLower.includes('luck tome') || offerLower === 'luck tome') quadBonus += 40;
+    else if (offerLower.includes('cursed tome') || offerLower === 'cursed tome') quadBonus += 38;
+    
+    // Key high-tier leaderboard items
+    const lbItems = ['echo shard', 'time bracelet', 'clover', 'overpowered lamp', 'big bonk', 'giant fork', 'skuleg', 'cursed grabbies'];
+    if (lbItems.includes(offerLower)) quadBonus += 25;
+
+    compositeScore = dpsGainPct * 0.35 + ehpGainPct * 0.20 + (affectedWeaponsCount * 2.5) + quadBonus;
+  } else if (objective === 'dps_pure') {
     compositeScore = dpsGainPct * 0.85 + (affectedWeaponsCount * 3.5);
   } else if (objective === 'tank_thorns') {
     compositeScore = ehpGainPct * 0.70 + dpsGainPct * 0.20 + (affectedWeaponsCount * 2);
   } else if (objective === 'speed_farming') {
-    const econBonus = (offerLower.includes('xp') || offerLower.includes('luck') || offerLower.includes('curse') || offerLower.includes('gold')) ? 25 : 0;
+    const econBonus = (offerLower.includes('xp') || offerLower.includes('luck') || offerLower.includes('curse') || offerLower.includes('chaos') || offerLower.includes('gold')) ? 25 : 0;
     compositeScore = dpsGainPct * 0.40 + ehpGainPct * 0.20 + econBonus;
   } else if (objective === 'crit_burst') {
     const critBonus = (offerLower.includes('precision') || offerLower.includes('juice') || offerLower.includes('fork') || offerLower.includes('glasses')) ? 20 : 0;

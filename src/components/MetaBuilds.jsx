@@ -29,24 +29,34 @@ export default function MetaBuilds({ onLoadBuild }) {
 
       {/* Grid of Meta Builds */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {metaBuilds.map((b) => (
-          <div
-            key={b.id}
-            className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-amber-500/80 transition-all flex flex-col justify-between shadow-xl group"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
-                  {b.difficulty}
-                </span>
-                <span className="text-xs font-mono text-slate-400 flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-amber-400" /> {b.character}
-                </span>
-              </div>
+        {metaBuilds.map((b) => {
+          const isTopLeaderboard = b.id === 'leaderboard_quad_god';
+          return (
+            <div
+              key={b.id}
+              className={`p-5 rounded-2xl transition-all flex flex-col justify-between shadow-xl group ${
+                isTopLeaderboard
+                  ? 'bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 border-2 border-amber-500/80 shadow-amber-500/20'
+                  : 'bg-slate-900/70 border border-slate-800 hover:border-amber-500/80'
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
+                    isTopLeaderboard
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-black'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  }`}>
+                    {isTopLeaderboard ? '👑 #1 WORLD RECORD META' : b.difficulty}
+                  </span>
+                  <span className="text-xs font-mono text-slate-400 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-amber-400" /> {b.character}
+                  </span>
+                </div>
 
-              <h3 className="text-lg font-heading font-bold text-white group-hover:text-amber-300 transition-colors mb-2">
-                {b.name}
-              </h3>
+                <h3 className="text-lg font-heading font-bold text-white group-hover:text-amber-300 transition-colors mb-2">
+                  {b.name}
+                </h3>
 
               <p className="text-xs text-slate-300 mb-4 leading-relaxed">
                 {b.description}
@@ -113,7 +123,8 @@ export default function MetaBuilds({ onLoadBuild }) {
               Load Preset Build
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

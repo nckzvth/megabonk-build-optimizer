@@ -44,7 +44,7 @@ export default function UpgradeAdvisor({
     { id: 4, name: 'Moldy Cheese', rarity: 'Common', type: 'item' },
   ]);
 
-  const [objective, setObjective] = useState('balanced');
+  const [objective, setObjective] = useState('leaderboard');
   const [showMathDetails, setShowMathDetails] = useState(false);
   const [showSyncInfo, setShowSyncInfo] = useState(false);
   const [showLoadoutDrawer, setShowLoadoutDrawer] = useState(false);
@@ -158,11 +158,12 @@ export default function UpgradeAdvisor({
   };
 
   const objectives = [
+    { id: 'leaderboard', label: 'Leaderboard God', desc: 'Prioritizes XP, Luck, Curse & Chaos for endless record runs', icon: Trophy },
     { id: 'balanced', label: 'Balanced', desc: 'Maximizes DPS while protecting EHP', icon: Shield },
     { id: 'dps_pure', label: 'Glass Cannon', desc: '100% focused on maximum DPS', icon: Swords },
     { id: 'tank_thorns', label: 'Immortal Tank', desc: 'Prioritizes Armor, Max HP, and Thorns', icon: Shield },
-    { id: 'speed_farming', label: 'Meta Farm', desc: 'Favors XP, Luck, Curse, and Gold', icon: Zap },
     { id: 'crit_burst', label: 'Overcrit Burst', desc: 'Focuses on Precision & Megacrit scaling', icon: Crosshair },
+    { id: 'speed_farming', label: 'Economy Farm', desc: 'Favors Gold & Silver meta farming', icon: Zap },
   ];
 
   return (
@@ -349,7 +350,7 @@ export default function UpgradeAdvisor({
           <label className="text-xs uppercase font-mono text-slate-400 font-semibold mb-2 block">
             Build Objective / Playstyle:
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {objectives.map((obj) => {
               const Icon = obj.icon;
               const isSelected = objective === obj.id;
