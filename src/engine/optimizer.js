@@ -468,212 +468,461 @@ export function rankOfferedUpgrades(currentBuildState, offers = [], objective = 
  * Calculates pure abstract stat priorities (unmixed with items/tomes)
  * Evaluates how valuable adding raw stats is to the active build based on Purpose.
  */
-export function calculatePureStatPriorities(currentBuildState, purpose = 'leaderboard') {
-  const { character, level, currentWeapons = [], currentTomes = [], currentItems = [] } = currentBuildState;
+/**
+ * Calculates pure abstract stat priorities (unbundled and completely separate).
+ * Evaluates raw stats across:
+ * 1. Weapon Upgrade Stats (specifically what to pick when upgrading weapons)
+ * 2. Shrine Blessings (specifically what to pick when visiting Shrines)
+ * 3. Master List of all 21 individual stats (unbundled: Max HP and Shield are separate, XP, Luck, and Curse are separate, etc.)
+ */
+export function calculateDetailedStatPriorities(currentBuildState, purpose = 'leaderboard') {
+  const { character = {}, level = 1, currentWeapons = [], currentTomes = [], currentItems = [] } = currentBuildState;
   const baseDps = Math.max(1, currentBuildState.totalDps || 50);
   const baseEhp = Math.max(1, currentBuildState.ehp || 100);
+  const activeWeapons = currentBuildState.weapons || [];
 
-  const rawStatsToEvaluate = [
+  // Master definition of all 21 DISCRETE, UNBUNDLED stats in Megabonk
+  const discreteStats = [
+    // 1. OFFENSIVE STATS (Weapon Upgrades & Shrines)
+    {
+      id: 'damage',
+      name: 'Damage %',
+      inGameLabel: '+15% Damage',
+      category: 'Offense',
+      icon: '🔥',
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Power',
+      apply: (st) => ({ ...st, damage: st.damage + 0.15 }),
+      desc: 'Universal multiplicative damage increase applying across all attacks.',
+      shrineAdvice: 'Direct bracket multiplier across all active damage sources.'
+    },
     {
       id: 'attack_speed',
       name: 'Attack Speed',
+      inGameLabel: '+15% Attack Speed',
       category: 'Offense',
       icon: '⚡',
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Swiftness',
       apply: (st) => ({ ...st, attackSpeed: st.attackSpeed + 15 }),
-      desc: 'Reduces weapon attack cooldowns across all equipped weapons.'
+      desc: 'Increases weapon attack rate and reduces recovery cooldowns across all weapons.',
+      shrineAdvice: 'Greatly increases proc frequency and hit rate on every equipped weapon.'
     },
     {
       id: 'projectile_count',
       name: 'Projectile Count',
+      inGameLabel: '+1 Projectile',
       category: 'Offense',
       icon: '🎯',
+      isWeaponUpgrade: true,
+      isShrine: false,
       apply: (st) => ({ ...st, projectileCount: st.projectileCount + 1 }),
-      desc: 'Adds extra projectiles/swings to projectile-compatible weapons.'
+      desc: 'Adds extra projectiles or swings to projectile-compatible weapons.',
+      weaponTag: 'Projectile Count'
     },
     {
       id: 'crit_chance',
       name: 'Critical Strike Chance',
+      inGameLabel: '+10% Crit Chance',
       category: 'Offense',
       icon: '💥',
-      apply: (st) => ({ ...st, critChance: st.critChance + 12 }),
-      desc: 'Increases crit chance, pushing past 100% into Overcrit multipliers.'
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Precision',
+      apply: (st) => ({ ...st, critChance: st.critChance + 10 }),
+      desc: 'Increases chance to land critical strikes, scaling past 100% into Overcrits.',
+      shrineAdvice: 'Scales damage output exponentially, especially when pushing into Overcrit.'
     },
     {
       id: 'crit_damage',
-      name: 'Critical Strike Damage',
+      name: 'Critical Strike Multiplier',
+      inGameLabel: '+35% Crit Damage',
       category: 'Offense',
       icon: '⚔️',
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Destruction',
       apply: (st) => ({ ...st, critDamage: st.critDamage + 0.35 }),
-      desc: 'Increases the multiplier of all normal crits and Overcrits.'
-    },
-    {
-      id: 'damage_mult',
-      name: 'Universal Damage %',
-      category: 'Offense',
-      icon: '🔥',
-      apply: (st) => ({ ...st, damage: st.damage + 0.15 }),
-      desc: 'Universal multiplicative bracket scaling all attacks.'
+      desc: 'Increases the damage multiplier when critical strikes and Overcrits land.',
+      shrineAdvice: 'Amplifies all crits; best when Crit Chance is already high.'
     },
     {
       id: 'aoe_size',
-      name: 'Area of Effect (Size)',
+      name: 'Area of Effect',
+      inGameLabel: '+18% Size / AoE',
       category: 'Offense',
       icon: '⭕',
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Scope',
       apply: (st) => ({ ...st, size: st.size + 0.18 }),
-      desc: 'Expands weapon hitboxes, aura radii, and explosion coverage.'
+      desc: 'Expands weapon hitboxes, explosion radii, and aura coverage.',
+      weaponTag: 'Size',
+      shrineAdvice: 'Clears swarms easier by expanding weapon coverage and blast radius.'
+    },
+    {
+      id: 'cooldown_reduction',
+      name: 'Cooldown Reduction',
+      inGameLabel: '-10% Cooldown',
+      category: 'Offense',
+      icon: '⏳',
+      isWeaponUpgrade: true,
+      isShrine: true,
+      shrineName: 'Shrine of Haste',
+      apply: (st) => ({ ...st, attackSpeed: st.attackSpeed + 12 }),
+      desc: 'Reduces weapon recovery cooldowns, triggering attacks more frequently.',
+      shrineAdvice: 'Triggers weapon attacks and abilities with reduced delay.'
     },
     {
       id: 'duration',
       name: 'Attack Duration',
+      inGameLabel: '+20% Duration',
       category: 'Offense',
-      icon: '⏳',
+      icon: '⏱️',
+      isWeaponUpgrade: true,
+      isShrine: false,
       apply: (st) => ({ ...st, duration: st.duration + 0.20 }),
-      desc: 'Extends ground hazard and lingering weapon uptime.'
+      desc: 'Extends ground hazard zones, auras, and lingering weapon uptime.',
+      weaponTag: 'Duration'
+    },
+    {
+      id: 'projectile_speed',
+      name: 'Projectile Speed',
+      inGameLabel: '+15% Projectile Speed',
+      category: 'Offense',
+      icon: '🚀',
+      isWeaponUpgrade: true,
+      isShrine: false,
+      apply: (st) => ({ ...st, projectileSpeed: (st.projectileSpeed || 1.0) + 0.15 }),
+      desc: 'Increases missile travel velocity and orbit revolution speed.',
+      weaponTag: 'Projectile Speed'
+    },
+
+    // 2. DEFENSIVE STATS (Separate Max HP, Separate Shield, Separate Armor)
+    {
+      id: 'max_hp',
+      name: 'Max HP',
+      inGameLabel: '+40 Max HP',
+      category: 'Defense',
+      icon: '❤️',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Vitality',
+      apply: (st) => ({ ...st, maxHp: st.maxHp + 40 }),
+      desc: 'Increases base hitpoint pool buffer to withstand heavy boss hits.',
+      shrineAdvice: 'Essential base survival buffer to prevent instant lethal burst.'
+    },
+    {
+      id: 'shield',
+      name: 'Shield',
+      inGameLabel: '+30 Shield',
+      category: 'Defense',
+      icon: '🛡️',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Warding',
+      apply: (st) => ({ ...st, shield: (st.shield || 0) + 30 }),
+      desc: 'Replenishing energy shield absorbing damage before health is touched.',
+      shrineAdvice: 'Provides self-recharging hitpoint buffer against chip damage.'
     },
     {
       id: 'armor',
-      name: 'Armor (% Reduction)',
+      name: 'Armor',
+      inGameLabel: '+8 Armor',
       category: 'Defense',
-      icon: '🛡️',
-      apply: (st) => ({ ...st, armor: st.armor + 10 }),
-      desc: 'Reduces all incoming damage, scaling Effective HP hyperbolically.'
+      icon: '🥋',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Iron',
+      apply: (st) => ({ ...st, armor: st.armor + 8 }),
+      desc: 'Flat damage reduction percentage that increases Effective HP hyperbolically.',
+      shrineAdvice: 'Massively increases EHP; each point of armor gives huge survivability.'
     },
     {
-      id: 'max_hp',
-      name: 'Maximum HP & Shield',
+      id: 'hp_regen',
+      name: 'HP Regeneration',
+      inGameLabel: '+15 HP / sec',
       category: 'Defense',
-      icon: '❤️',
-      apply: (st) => ({ ...st, maxHp: st.maxHp + 35, shield: st.shield + 20 }),
-      desc: 'Expands your base health buffer against heavy swarm hits.'
+      icon: '💚',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Renewal',
+      apply: (st) => ({ ...st, hpRegen: (st.hpRegen || 0) + 15 }),
+      desc: 'Passively restores health continuously every second.',
+      shrineAdvice: 'Continuous recovery during frantic kiting without potion drops.'
     },
     {
-      id: 'movement_speed',
-      name: 'Movement Speed',
-      category: 'Utility',
-      icon: '👟',
-      apply: (st) => ({ ...st, movementSpeed: st.movementSpeed + 0.15 }),
-      desc: 'Increases dodge agility and activates speed-to-damage scalers.'
+      id: 'lifesteal',
+      name: 'Lifesteal',
+      inGameLabel: '+4% Lifesteal',
+      category: 'Defense',
+      icon: '🩸',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Blood Shrine',
+      apply: (st) => ({ ...st, lifesteal: (st.lifesteal || 0) + 4 }),
+      desc: 'Heals you for a percentage of the total damage dealt to enemies.',
+      shrineAdvice: 'Converts high DPS into massive instant health recovery.'
     },
+    {
+      id: 'thorns',
+      name: 'Thorns',
+      inGameLabel: '+20 Thorns',
+      category: 'Defense',
+      icon: '🦔',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Retribution',
+      apply: (st) => ({ ...st, thorns: (st.thorns || 0) + 20 }),
+      desc: 'Reflects flat and armor-scaled damage back to attackers when hit.',
+      shrineAdvice: 'Turns enemy swarms into self-inflicted damage when building tank.'
+    },
+    {
+      id: 'evasion',
+      name: 'Evasion',
+      inGameLabel: '+6% Evasion',
+      category: 'Defense',
+      icon: '💨',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Shadows',
+      apply: (st) => ({ ...st, evasion: (st.evasion || 0) + 6 }),
+      desc: 'Grants percentage chance to completely negate incoming hits.',
+      shrineAdvice: 'Gives RNG avoidance chance against lethal boss strikes.'
+    },
+
+    // 3. LEADERBOARD & ECONOMY STATS (Separate XP, Separate Luck, Separate Curse)
     {
       id: 'xp_gain',
-      name: 'XP Velocity & Level Scaling',
+      name: 'XP Gain',
+      inGameLabel: '+20% XP Gain',
       category: 'Leaderboard',
       icon: '⭐',
-      apply: (st) => ({ ...st, xpGain: st.xpGain + 0.20 }),
-      desc: 'Crucial for reaching Lv.100+ on competitive endless leaderboards.'
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Wisdom',
+      apply: (st) => ({ ...st, xpGain: (st.xpGain || 1.0) + 0.20 }),
+      desc: 'Accelerates hero level-up frequency, earning more upgrade rolls faster.',
+      shrineAdvice: 'God tier for leaderboard runs: speeds up levels so you scale before boss timers.'
     },
     {
       id: 'luck',
-      name: 'Luck (Drop & Shrine Tier)',
+      name: 'Luck',
+      inGameLabel: '+15 Luck',
       category: 'Leaderboard',
       icon: '🍀',
-      apply: (st) => ({ ...st, luck: st.luck + 12 }),
-      desc: 'Directly dictates shrine tier quality and legendary drop rates.'
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Fortune',
+      apply: (st) => ({ ...st, luck: st.luck + 15 }),
+      desc: 'Increases drop rarity tiers, critical chest rolls, and higher-tier shrine offerings.',
+      shrineAdvice: 'Essential economy stat: elevates chest drops from Common to Rare/Legendary.'
     },
     {
-      id: 'cursed_density',
-      name: 'Enemy Density (Curse)',
+      id: 'curse',
+      name: 'Curse',
+      inGameLabel: '+15% Curse',
       category: 'Leaderboard',
       icon: '💀',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Curse Shrine',
       apply: (st) => ({ ...st, difficulty: (st.difficulty || 1.0) + 0.15 }),
-      desc: 'Spawns larger mob waves for astronomical XP shard farming.'
+      desc: 'Spawns larger mob waves and enemy density for astronomical XP shard farming.',
+      shrineAdvice: 'World-record staple: spawns huge mob density for limitless XP harvesting.'
+    },
+
+    // 4. UTILITY & MOBILITY STATS
+    {
+      id: 'movement_speed',
+      name: 'Movement Speed',
+      inGameLabel: '+15% Move Speed',
+      category: 'Utility',
+      icon: '👟',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Velocity',
+      apply: (st) => ({ ...st, movementSpeed: st.movementSpeed + 0.15 }),
+      desc: 'Increases hero running speed for dodging swarms and kiting bosses.',
+      shrineAdvice: 'Allows outrunning elite swarms and triggers Calcium speed-to-damage.'
+    },
+    {
+      id: 'pickup_range',
+      name: 'Pickup Range',
+      inGameLabel: '+25% Pickup Range',
+      category: 'Utility',
+      icon: '🧲',
+      isWeaponUpgrade: false,
+      isShrine: true,
+      shrineName: 'Shrine of Magnetism',
+      apply: (st) => ({ ...st, pickupRange: (st.pickupRange || 5.0) + 2.0 }),
+      desc: 'Expands the attraction radius for collecting XP gems and coins safely from distance.',
+      shrineAdvice: 'Permits vacuuming XP shards without dangerously diving into swarms.'
     }
   ];
 
-  return rawStatsToEvaluate.map(stat => {
-    // Clone and test
-    const baseCalculated = calculateBuildStats(character.name, level, currentWeapons, currentTomes, currentItems);
-    
-    // Evaluate simulated stats
-    const simulatedState = {
-      ...baseCalculated,
-      stats: stat.apply({ ...baseCalculated.stats })
-    };
+  // Evaluate every discrete stat mathematically
+  const evaluatedStats = discreteStats.map(stat => {
+    // Check weapon compatibility for weapon upgrades
+    let compatibleWeapons = [];
+    if (stat.isWeaponUpgrade) {
+      compatibleWeapons = activeWeapons.filter(w => {
+        const tags = (w.affectedBy || []).map(t => t.toLowerCase());
+        if (stat.id === 'projectile_count') return tags.includes('projectile count') || tags.includes('projectiles');
+        if (stat.id === 'aoe_size') return tags.includes('size') || tags.includes('area') || tags.includes('aoe');
+        if (stat.id === 'duration') return tags.includes('duration');
+        if (stat.id === 'projectile_speed') return tags.includes('projectile speed');
+        // Universal weapon stats apply to all weapons
+        return true;
+      }).map(w => w.name);
+    }
 
-    // Recompute DPS & EHP with modified stat
-    const nextSim = calculateBuildStats(
-      character.name,
-      level,
-      currentWeapons,
-      currentTomes,
-      currentItems
-    );
-    // Directly apply the stat delta onto calculation
-    const modStats = stat.apply({ ...nextSim.stats });
-    
-    // Compute marginal DPS
+    const modStats = stat.apply({ ...(currentBuildState.stats || {}) });
+
+    // Marginal DPS calculation
     let simDps = baseDps;
-    if (stat.id === 'attack_speed') simDps = baseDps * (modStats.attackSpeed / Math.max(1, baseCalculated.stats.attackSpeed));
-    else if (stat.id === 'damage_mult') simDps = baseDps * (modStats.damage / Math.max(0.1, baseCalculated.stats.damage));
-    else if (stat.id === 'projectile_count') simDps = baseDps * 1.15;
-    else if (stat.id === 'crit_chance') simDps = baseDps * (1 + (modStats.critChance / 100) * 0.4);
-    else if (stat.id === 'crit_damage') simDps = baseDps * 1.08;
-    else if (stat.id === 'aoe_size') simDps = baseDps * 1.09;
-    else if (stat.id === 'duration') simDps = baseDps * 1.05;
-    else if (stat.id === 'movement_speed' && character.name === 'Calcium') simDps = baseDps * 1.12;
+    if (stat.id === 'attack_speed' || stat.id === 'cooldown_reduction') {
+      simDps = baseDps * (modStats.attackSpeed / Math.max(1, currentBuildState.stats?.attackSpeed || 100));
+    } else if (stat.id === 'damage') {
+      simDps = baseDps * (modStats.damage / Math.max(0.1, currentBuildState.stats?.damage || 1.0));
+    } else if (stat.id === 'projectile_count') {
+      const weaponRatio = activeWeapons.length > 0 ? compatibleWeapons.length / activeWeapons.length : 0.5;
+      simDps = baseDps * (1 + 0.22 * weaponRatio);
+    } else if (stat.id === 'crit_chance') {
+      simDps = baseDps * (1 + (modStats.critChance / 100) * 0.45);
+    } else if (stat.id === 'crit_damage') {
+      const critFactor = Math.min(1.0, (currentBuildState.stats?.critChance || 5) / 100);
+      simDps = baseDps * (1 + 0.35 * critFactor);
+    } else if (stat.id === 'aoe_size') {
+      const weaponRatio = activeWeapons.length > 0 ? compatibleWeapons.length / activeWeapons.length : 0.5;
+      simDps = baseDps * (1 + 0.12 * weaponRatio);
+    } else if (stat.id === 'duration') {
+      simDps = baseDps * 1.06;
+    } else if (stat.id === 'projectile_speed') {
+      simDps = baseDps * 1.04;
+    } else if (stat.id === 'movement_speed' && character?.name === 'Calcium') {
+      simDps = baseDps * 1.14;
+    }
 
     const dpsGainPct = Math.max(0, ((simDps - baseDps) / baseDps) * 100);
 
-    // Compute marginal EHP
-    const armorRed = Math.min(0.85, Math.max(0, modStats.armor / 100));
-    const evasRed = Math.min(0.75, Math.max(0, modStats.evasion / 100));
-    const simEhp = (modStats.maxHp + modStats.shield) / ((1 - armorRed) * (1 - evasRed));
+    // Marginal EHP calculation
+    const armorRed = Math.min(0.85, Math.max(0, (modStats.armor || 0) / 100));
+    const evasRed = Math.min(0.75, Math.max(0, (modStats.evasion || 0) / 100));
+    const simEhp = ((modStats.maxHp || 100) + (modStats.shield || 0)) / ((1 - armorRed) * (1 - evasRed));
     const ehpGainPct = Math.max(0, ((simEhp - baseEhp) / baseEhp) * 100);
 
-    // Weight by selected Purpose
+    // Goal-specific strategic weights
     let purposeMultiplier = 1.0;
     let purposeBonus = 0;
 
     if (purpose === 'leaderboard') {
-      if (['xp_gain', 'luck', 'cursed_density'].includes(stat.id)) {
-        purposeMultiplier = 3.5;
-        purposeBonus = 35;
-      } else if (['projectile_count', 'attack_speed', 'aoe_size'].includes(stat.id)) {
+      if (['xp_gain', 'luck', 'curse'].includes(stat.id)) {
+        purposeMultiplier = 3.6;
+        purposeBonus = 40;
+      } else if (['projectile_count', 'attack_speed', 'damage', 'aoe_size'].includes(stat.id)) {
         purposeMultiplier = 1.8;
       }
     } else if (purpose === 'dps_pure') {
-      if (['damage_mult', 'attack_speed', 'projectile_count', 'crit_chance'].includes(stat.id)) {
+      if (['damage', 'attack_speed', 'projectile_count', 'crit_chance', 'crit_damage'].includes(stat.id)) {
         purposeMultiplier = 2.8;
-        purposeBonus = 20;
+        purposeBonus = 25;
       }
     } else if (purpose === 'tank_thorns') {
-      if (['armor', 'max_hp'].includes(stat.id)) {
+      if (['armor', 'max_hp', 'thorns', 'hp_regen', 'shield'].includes(stat.id)) {
         purposeMultiplier = 3.2;
-        purposeBonus = 30;
+        purposeBonus = 35;
       }
     } else if (purpose === 'crit_burst') {
       if (['crit_chance', 'crit_damage'].includes(stat.id)) {
-        purposeMultiplier = 3.5;
-        purposeBonus = 35;
+        purposeMultiplier = 3.8;
+        purposeBonus = 40;
       }
     } else if (purpose === 'speed_farming') {
-      if (['movement_speed', 'xp_gain'].includes(stat.id)) {
+      if (['movement_speed', 'xp_gain', 'luck', 'pickup_range'].includes(stat.id)) {
         purposeMultiplier = 3.0;
-        purposeBonus = 25;
+        purposeBonus = 30;
       }
     }
 
-    const compositeScore = (dpsGainPct * 0.55 + ehpGainPct * 0.40) * purposeMultiplier + purposeBonus;
+    // Composite scoring
+    let compositeScore = (dpsGainPct * 0.55 + ehpGainPct * 0.40) * purposeMultiplier + purposeBonus;
 
-    // Diminishing returns status
+    // Special bonus for weapon upgrade synergy
+    if (stat.isWeaponUpgrade && compatibleWeapons.length > 0) {
+      compositeScore += compatibleWeapons.length * 3.5;
+    }
+
     let status = 'High Value';
-    if (compositeScore >= 30) status = 'Essential Peak';
-    else if (compositeScore >= 18) status = 'Strong Scaling';
+    if (compositeScore >= 35) status = 'Essential Peak';
+    else if (compositeScore >= 20) status = 'Strong Scaling';
     else if (compositeScore >= 10) status = 'Moderate';
     else status = 'Low Marginal Yield';
+
+    let weaponSynergyText = '';
+    if (stat.isWeaponUpgrade) {
+      if (compatibleWeapons.length === activeWeapons.length && activeWeapons.length > 0) {
+        weaponSynergyText = `Scales all ${activeWeapons.length} active weapons`;
+      } else if (compatibleWeapons.length > 0) {
+        weaponSynergyText = `Scales ${compatibleWeapons.length}/${activeWeapons.length} weapons: ${compatibleWeapons.join(', ')}`;
+      } else {
+        weaponSynergyText = `No active weapons currently scale with this tag`;
+      }
+    }
 
     return {
       id: stat.id,
       name: stat.name,
+      inGameLabel: stat.inGameLabel,
       category: stat.category,
       icon: stat.icon,
+      isWeaponUpgrade: stat.isWeaponUpgrade,
+      isShrine: stat.isShrine,
+      shrineName: stat.shrineName,
+      shrineAdvice: stat.shrineAdvice,
       description: stat.desc,
+      weaponSynergyText,
+      compatibleWeapons,
       dpsGainPct,
       ehpGainPct,
       compositeScore,
       status
     };
-  }).sort((a, b) => b.compositeScore - a.compositeScore);
+  });
+
+  // 1. All stats sorted
+  const allStats = [...evaluatedStats].sort((a, b) => b.compositeScore - a.compositeScore);
+
+  // 2. Weapon Upgrade Stats specifically (only stats offered on weapon upgrades)
+  const weaponUpgradeStats = evaluatedStats
+    .filter(s => s.isWeaponUpgrade)
+    .sort((a, b) => b.compositeScore - a.compositeScore);
+
+  // 3. Shrine Blessings specifically (only stats offered at shrines)
+  const shrineStats = evaluatedStats
+    .filter(s => s.isShrine)
+    .sort((a, b) => b.compositeScore - a.compositeScore);
+
+  return {
+    allStats,
+    weaponUpgradeStats,
+    shrineStats
+  };
+}
+
+/**
+ * Backwards compatibility wrapper for calculatePureStatPriorities.
+ * Returns the allStats array with weaponUpgradeStats and shrineStats attached.
+ */
+export function calculatePureStatPriorities(currentBuildState, purpose = 'leaderboard') {
+  const result = calculateDetailedStatPriorities(currentBuildState, purpose);
+  const arr = result.allStats;
+  arr.weaponUpgradeStats = result.weaponUpgradeStats;
+  arr.shrineStats = result.shrineStats;
+  arr.allStats = result.allStats;
+  return arr;
 }
 
 /**
