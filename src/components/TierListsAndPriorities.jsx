@@ -91,7 +91,7 @@ export default function TierListsAndPriorities({
             Unbundled Stat & Item Tier Lists
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-light">
-            Separate individual rankings for <strong className="text-white font-medium">Weapon Upgrades</strong>, <strong className="text-white font-medium">Shrine Blessings</strong>, and all discrete stats without grouping.
+            Separate individual rankings for <strong className="text-white font-medium">Weapon Upgrades</strong>, <strong className="text-white font-medium">Shrine Stats</strong>, and all discrete stats without grouping.
           </p>
         </div>
 
@@ -233,7 +233,7 @@ export default function TierListsAndPriorities({
         </div>
       )}
 
-      {/* 4. SUB-TAB: SHRINE BLESSINGS (EXACTLY WHAT TO PICK AT SHRINES) */}
+      {/* 4. SUB-TAB: SHRINE STATS (EXACTLY WHAT TO PICK AT SHRINES) */}
       {activeSubTab === 'shrines' && (
         <div className="space-y-6">
           <div className="pb-4 border-b border-white/[0.06] flex flex-col md:flex-row md:items-baseline justify-between gap-3">
@@ -241,11 +241,11 @@ export default function TierListsAndPriorities({
               <div className="flex items-center gap-2">
                 <span className="text-amber-400 text-base">⛩️</span>
                 <h2 className="text-lg font-bold text-white tracking-tight">
-                  Shrine Blessing Priorities
+                  Shrine Stat Priorities
                 </h2>
               </div>
               <p className="text-xs text-zinc-400 mt-1 font-light">
-                When praying at Shrines during your run, prioritize these blessing offerings in exact order.
+                When choosing stat upgrades at Shrines during your run, prioritize these in-game stats in exact order.
               </p>
             </div>
 
@@ -277,7 +277,7 @@ export default function TierListsAndPriorities({
                       <span className="text-base">{stat.icon}</span>
                       <span className="font-bold text-white text-sm tracking-tight">{stat.name}</span>
                       <span className="text-xs font-mono text-cyan-300 font-semibold px-2 py-0.5 rounded-full bg-cyan-400/10">
-                        {stat.shrineName} ({stat.inGameLabel})
+                        {stat.inGameLabel}
                       </span>
                       <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-semibold ${
                         stat.status === 'Essential Peak' ? 'text-amber-400 bg-amber-400/10' :
@@ -306,7 +306,7 @@ export default function TierListsAndPriorities({
                   </div>
 
                   <p className="text-xs text-zinc-300 font-light pl-9 leading-relaxed">
-                    <span className="text-amber-400 font-medium">Shrine Strategy: </span>
+                    <span className="text-amber-400 font-medium">Stat Impact: </span>
                     {stat.shrineAdvice || stat.description}
                   </p>
                 </div>

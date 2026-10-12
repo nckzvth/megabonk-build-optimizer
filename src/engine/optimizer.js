@@ -499,13 +499,12 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
     // 1. OFFENSIVE STATS (Weapon Upgrades & Shrines)
     {
       id: 'damage',
-      name: 'Damage %',
+      name: 'Damage',
       inGameLabel: '+15% Damage',
       category: 'Offense',
       icon: '🔥',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Power',
       apply: (st) => ({ ...st, damage: st.damage + 0.15 }),
       desc: 'Universal multiplicative damage increase applying across all attacks.',
       shrineAdvice: 'Direct bracket multiplier across all active damage sources.'
@@ -518,7 +517,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '⚡',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Swiftness',
       apply: (st) => ({ ...st, attackSpeed: st.attackSpeed + 15 }),
       desc: 'Increases weapon attack rate and reduces recovery cooldowns across all weapons.',
       shrineAdvice: 'Greatly increases proc frequency and hit rate on every equipped weapon.'
@@ -537,39 +535,36 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
     },
     {
       id: 'crit_chance',
-      name: 'Critical Strike Chance',
+      name: 'Crit Chance',
       inGameLabel: '+10% Crit Chance',
       category: 'Offense',
       icon: '💥',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Precision',
       apply: (st) => ({ ...st, critChance: st.critChance + 10 }),
       desc: 'Increases chance to land critical strikes, scaling past 100% into Overcrits.',
       shrineAdvice: 'Scales damage output exponentially, especially when pushing into Overcrit.'
     },
     {
       id: 'crit_damage',
-      name: 'Critical Strike Multiplier',
+      name: 'Crit Damage',
       inGameLabel: '+35% Crit Damage',
       category: 'Offense',
       icon: '⚔️',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Destruction',
       apply: (st) => ({ ...st, critDamage: st.critDamage + 0.35 }),
       desc: 'Increases the damage multiplier when critical strikes and Overcrits land.',
       shrineAdvice: 'Amplifies all crits; best when Crit Chance is already high.'
     },
     {
       id: 'aoe_size',
-      name: 'Area of Effect',
-      inGameLabel: '+18% Size / AoE',
+      name: 'Size / AoE',
+      inGameLabel: '+18% Size',
       category: 'Offense',
       icon: '⭕',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Scope',
       apply: (st) => ({ ...st, size: st.size + 0.18 }),
       desc: 'Expands weapon hitboxes, explosion radii, and aura coverage.',
       weaponTag: 'Size',
@@ -583,7 +578,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '⏳',
       isWeaponUpgrade: true,
       isShrine: true,
-      shrineName: 'Shrine of Haste',
       apply: (st) => ({ ...st, attackSpeed: st.attackSpeed + 12 }),
       desc: 'Reduces weapon recovery cooldowns, triggering attacks more frequently.',
       shrineAdvice: 'Triggers weapon attacks and abilities with reduced delay.'
@@ -622,7 +616,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '❤️',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Vitality',
       apply: (st) => ({ ...st, maxHp: st.maxHp + 40 }),
       desc: 'Increases base hitpoint pool buffer to withstand heavy boss hits.',
       shrineAdvice: 'Essential base survival buffer to prevent instant lethal burst.'
@@ -635,7 +628,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🛡️',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Warding',
       apply: (st) => ({ ...st, shield: (st.shield || 0) + 30 }),
       desc: 'Replenishing energy shield absorbing damage before health is touched.',
       shrineAdvice: 'Provides self-recharging hitpoint buffer against chip damage.'
@@ -648,20 +640,18 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🥋',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Iron',
       apply: (st) => ({ ...st, armor: st.armor + 8 }),
       desc: 'Flat damage reduction percentage that increases Effective HP hyperbolically.',
       shrineAdvice: 'Massively increases EHP; each point of armor gives huge survivability.'
     },
     {
       id: 'hp_regen',
-      name: 'HP Regeneration',
+      name: 'HP Regen',
       inGameLabel: '+15 HP / sec',
       category: 'Defense',
       icon: '💚',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Renewal',
       apply: (st) => ({ ...st, hpRegen: (st.hpRegen || 0) + 15 }),
       desc: 'Passively restores health continuously every second.',
       shrineAdvice: 'Continuous recovery during frantic kiting without potion drops.'
@@ -674,7 +664,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🩸',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Blood Shrine',
       apply: (st) => ({ ...st, lifesteal: (st.lifesteal || 0) + 4 }),
       desc: 'Heals you for a percentage of the total damage dealt to enemies.',
       shrineAdvice: 'Converts high DPS into massive instant health recovery.'
@@ -687,7 +676,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🦔',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Retribution',
       apply: (st) => ({ ...st, thorns: (st.thorns || 0) + 20 }),
       desc: 'Reflects flat and armor-scaled damage back to attackers when hit.',
       shrineAdvice: 'Turns enemy swarms into self-inflicted damage when building tank.'
@@ -700,7 +688,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '💨',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Shadows',
       apply: (st) => ({ ...st, evasion: (st.evasion || 0) + 6 }),
       desc: 'Grants percentage chance to completely negate incoming hits.',
       shrineAdvice: 'Gives RNG avoidance chance against lethal boss strikes.'
@@ -715,7 +702,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '⭐',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Wisdom',
       apply: (st) => ({ ...st, xpGain: (st.xpGain || 1.0) + 0.20 }),
       desc: 'Accelerates hero level-up frequency, earning more upgrade rolls faster.',
       shrineAdvice: 'God tier for leaderboard runs: speeds up levels so you scale before boss timers.'
@@ -728,9 +714,8 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🍀',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Fortune',
       apply: (st) => ({ ...st, luck: st.luck + 15 }),
-      desc: 'Increases drop rarity tiers, critical chest rolls, and higher-tier shrine offerings.',
+      desc: 'Increases drop rarity tiers, critical chest rolls, and higher-tier offering rates.',
       shrineAdvice: 'Essential economy stat: elevates chest drops from Common to Rare/Legendary.'
     },
     {
@@ -741,7 +726,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '💀',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Curse Shrine',
       apply: (st) => ({ ...st, difficulty: (st.difficulty || 1.0) + 0.15 }),
       desc: 'Spawns larger mob waves and enemy density for astronomical XP shard farming.',
       shrineAdvice: 'World-record staple: spawns huge mob density for limitless XP harvesting.'
@@ -756,7 +740,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '👟',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Velocity',
       apply: (st) => ({ ...st, movementSpeed: st.movementSpeed + 0.15 }),
       desc: 'Increases hero running speed for dodging swarms and kiting bosses.',
       shrineAdvice: 'Allows outrunning elite swarms and triggers Calcium speed-to-damage.'
@@ -769,7 +752,6 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: '🧲',
       isWeaponUpgrade: false,
       isShrine: true,
-      shrineName: 'Shrine of Magnetism',
       apply: (st) => ({ ...st, pickupRange: (st.pickupRange || 5.0) + 2.0 }),
       desc: 'Expands the attraction radius for collecting XP gems and coins safely from distance.',
       shrineAdvice: 'Permits vacuuming XP shards without dangerously diving into swarms.'
@@ -893,7 +875,7 @@ export function calculateDetailedStatPriorities(currentBuildState, purpose = 'le
       icon: stat.icon,
       isWeaponUpgrade: stat.isWeaponUpgrade,
       isShrine: stat.isShrine,
-      shrineName: stat.shrineName,
+      shrineName: stat.name,
       shrineAdvice: stat.shrineAdvice,
       description: stat.desc,
       weaponSynergyText,

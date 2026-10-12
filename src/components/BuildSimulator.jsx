@@ -710,7 +710,7 @@ export default function BuildSimulator({
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                <span>⛩️ Shrine Priorities</span>
+                <span>⛩️ Shrine Stats</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
                   {shrinePriorities.length}
                 </span>
@@ -756,8 +756,8 @@ export default function BuildSimulator({
         {activeStrategyTab === 'shrines' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
-              <span>SHRINE BLESSING RANKINGS (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
-              <span>15 TOTAL SHRINE BLESSINGS</span>
+              <span>SHRINE STAT UPGRADE PRIORITIES (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
+              <span>{shrinePriorities.length} SHRINE STAT OPTIONS</span>
             </div>
             <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
               {shrinePriorities.map((shrine, idx) => {
@@ -775,7 +775,7 @@ export default function BuildSimulator({
                         <div className="flex items-center gap-2">
                           <span className="text-base">{shrine.icon}</span>
                           <span className={`font-bold ${isTop3 ? 'text-amber-400' : 'text-white'}`}>
-                            {shrine.shrineName}
+                            {shrine.name}
                           </span>
                           <span className="font-mono text-zinc-300 font-semibold px-1.5 py-0.5 rounded bg-white/[0.04]">
                             {shrine.inGameLabel}
