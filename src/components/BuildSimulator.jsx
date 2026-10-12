@@ -101,446 +101,503 @@ export default function BuildSimulator({
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      {/* LEFT COLUMN: Character, Weapons, Tomes, Items (7 Cols) */}
-      <div className="lg:col-span-7 space-y-6">
-        {/* CHARACTER SELECTION */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
-              <User className="w-4 h-4 text-amber-400" />
-              Character & Level
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-mono">Hero Level:</span>
-              <span className="text-sm font-bold text-amber-400 font-mono">Lv.{level}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Selected Character:</label>
-              <select
-                value={character}
-                onChange={(e) => setCharacter(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-amber-500 cursor-pointer"
-              >
-                {characters.map(c => (
-                  <option key={c.name} value={c.name}>
-                    {c.name} (Starts: {c.startingWeapon})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block flex justify-between">
-                <span>Run Level (1 - 100):</span>
-                <span className="font-mono text-amber-400">{level}</span>
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="100"
-                value={level}
-                onChange={(e) => setLevel(parseInt(e.target.value))}
-                className="w-full accent-amber-500 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Active Passive Preview */}
-          <div className="mt-3 p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs">
-            <span className="font-bold text-amber-400">Passive Ability: </span>
-            <span className="text-slate-300">{buildState?.character?.passive}</span>
-          </div>
+    <div className="max-w-6xl mx-auto py-4 space-y-12">
+      {/* 1. TOP EDITORIAL BANNER */}
+      <div className="pb-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold block mb-1">
+            Pro Creative Studio
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Build Simulator & Telemetry
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-light">
+            Live mathematical sandbox with 8-bracket multiplicative damage calculation.
+          </p>
         </div>
 
-        {/* WEAPONS LOADOUT (UP TO 4) */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
-              <Swords className="w-4 h-4 text-amber-400" />
-              Equipped Weapons ({currentWeapons.length} / 4)
-            </h3>
-            {currentWeapons.length < 4 && (
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleAddWeapon(e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-                defaultValue=""
-                className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-semibold focus:outline-none cursor-pointer"
-              >
-                <option value="" disabled>+ Add Weapon</option>
-                {weapons.map(w => (
-                  <option key={w.name} value={w.name}>
-                    {w.name} ({w.category})
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentWeapons.map((w, idx) => {
-              const resolved = buildState?.weapons?.find(rw => rw.name.toLowerCase() === w.name.toLowerCase());
-              return (
-                <div key={w.name + idx} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
-                      ⚔️ {w.name}
-                    </span>
-                    <button
-                      onClick={() => handleRemoveWeapon(idx)}
-                      className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-                    <span>Level: {w.level}</span>
-                    <span className="text-emerald-400 font-bold">
-                      {resolved?.dps ? resolved.dps.toFixed(0) : '0'} DPS
-                    </span>
-                  </div>
-
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    value={w.level}
-                    onChange={(e) => handleWeaponLevelChange(idx, e.target.value)}
-                    className="w-full accent-amber-500 cursor-pointer"
-                  />
-
-                  <div className="text-[10px] text-slate-400 mt-2 truncate">
-                    Affected by: {(resolved?.affectedBy || []).join(', ') || 'Standard damage'}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* TOMES LOADOUT (UP TO 4) */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-amber-400" />
-              Equipped Tomes ({currentTomes.length} / 4)
-            </h3>
-            {currentTomes.length < 4 && (
-              <select
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleAddTome(e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-                defaultValue=""
-                className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-amber-400 font-semibold focus:outline-none cursor-pointer"
-              >
-                <option value="" disabled>+ Add Tome</option>
-                {tomes.map(t => (
-                  <option key={t.name} value={t.name}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentTomes.map((t, idx) => (
-              <div key={t.name + idx} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 relative">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
-                    📖 {t.name}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveTome(idx)}
-                    className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-                  <span>Level: {t.level}</span>
-                  <span className="text-amber-400 font-bold">Tier {t.level}</span>
-                </div>
-
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={t.level}
-                  onChange={(e) => handleTomeLevelChange(idx, e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ITEMS INVENTORY */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
-              <Package className="w-4 h-4 text-amber-400" />
-              Active Inventory Items ({currentItems.reduce((acc, i) => acc + i.count, 0)})
-            </h3>
-          </div>
-
-          {/* Active Items Pills */}
-          {currentItems.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-4 p-3 rounded-xl bg-slate-950 border border-slate-800">
-              {currentItems.map((it) => (
-                <div
-                  key={it.name}
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs"
-                >
-                  <span className="font-semibold text-slate-200">{it.name}</span>
-                  <span className="font-mono text-amber-400 font-bold">x{it.count}</span>
-                  <button
-                    onClick={() => handleRemoveItem(it.name)}
-                    className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500 mb-4 italic">No items currently active in inventory.</p>
-          )}
-
-          {/* Item Catalog Picker */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search items to add..."
-                value={itemSearch}
-                onChange={(e) => setItemSearch(e.target.value)}
-                className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-              <select
-                value={selectedRarity}
-                onChange={(e) => setSelectedRarity(e.target.value)}
-                className="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none cursor-pointer"
-              >
-                <option value="ALL">All Rarities</option>
-                <option value="Common">Common</option>
-                <option value="Uncommon">Uncommon</option>
-                <option value="Rare">Rare</option>
-                <option value="Legendary">Legendary</option>
-              </select>
-            </div>
-
-            <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-              {filteredCatalogItems.slice(0, 15).map((it) => (
-                <div
-                  key={it.name}
-                  onClick={() => handleAddItem(it.name)}
-                  className="flex items-center justify-between p-2 rounded-lg bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800/80 transition-all cursor-pointer text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-slate-200">{it.name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                      it.rarity === 'Legendary' ? 'rarity-legendary' :
-                      it.rarity === 'Rare' ? 'rarity-rare' :
-                      it.rarity === 'Uncommon' ? 'rarity-uncommon' : 'rarity-common'
-                    }`}>
-                      {it.rarity}
-                    </span>
-                  </div>
-                  <span className="text-slate-400 hover:text-amber-400 font-bold">+ Add</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex items-center gap-4 text-xs font-mono">
+          <span className="text-zinc-500">Live Loadout:</span>
+          <span className="text-white font-bold">{character}</span>
+          <span className="text-zinc-600">•</span>
+          <span className="text-amber-400 font-semibold">Lv. {level}</span>
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Live Stat Sheet & 8 Damage Brackets (5 Cols) */}
-      <div className="lg:col-span-5 space-y-6">
-        {/* LIVE STAT SHEET */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2 mb-4">
-            <Activity className="w-4 h-4 text-amber-400" />
-            Live Build Character Sheet
-          </h3>
-
-          <div className="grid grid-cols-2 gap-3 font-mono text-xs mb-4">
-            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase block">Total DPS</span>
-              <span className="text-xl font-bold text-emerald-400">
-                {buildState?.totalDps ? buildState.totalDps.toFixed(0) : '0'}
+      {/* 2. APPLE STUDIO WORKBENCH (TWO OPEN ARCHITECTURAL PANES, ZERO CARDS) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* LEFT PANE: Arsenal & Loadout Controls (7 Cols) */}
+        <div className="lg:col-span-7 space-y-10 lg:border-r border-white/[0.08] lg:pr-10">
+          {/* A. HERO & PROGRESSION */}
+          <div className="space-y-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                Hero Selection & Progression
+              </span>
+              <span className="text-xs font-mono text-amber-400 font-bold">
+                Level {level} / 100
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <span className="text-[10px] text-slate-400 uppercase block">Effective HP (EHP)</span>
-              <span className="text-xl font-bold text-cyan-400">
-                {buildState?.ehp ? buildState.ehp.toFixed(0) : '0'}
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-1">
+              <div>
+                <label className="text-[11px] text-zinc-400 uppercase font-mono block mb-1">
+                  Active Hero
+                </label>
+                <select
+                  value={character}
+                  onChange={(e) => setCharacter(e.target.value)}
+                  className="w-full bg-transparent border-b border-zinc-700 hover:border-zinc-400 text-white font-bold py-1.5 text-sm focus:outline-none cursor-pointer transition-colors"
+                >
+                  {characters.map(c => (
+                    <option key={c.name} value={c.name} className="bg-zinc-950 text-white">
+                      {c.name} (Starts: {c.startingWeapon})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[11px] text-zinc-400 uppercase font-mono mb-1">
+                  <span>Level Track</span>
+                  <span className="text-amber-400 font-bold">Lv. {level}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={level}
+                  onChange={(e) => setLevel(parseInt(e.target.value))}
+                  className="w-full accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full mt-2"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 text-xs text-zinc-400 font-light leading-relaxed">
+              <span className="text-amber-400 font-medium">Hero Passive: </span>
+              {buildState?.character?.passive}
             </div>
           </div>
 
-          <div className="space-y-2 text-xs font-mono">
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Max HP:</span>
-              <span className="font-bold text-slate-200">{stats.maxHp ? stats.maxHp.toFixed(0) : 100}</span>
+          {/* B. WEAPONS DECK (4 SLOTS) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                  Weapons Deck
+                </span>
+                <span className="text-xs font-mono text-white font-bold">
+                  ({currentWeapons.length}/4)
+                </span>
+              </div>
+
+              {currentWeapons.length < 4 && (
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddWeapon(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                  className="bg-transparent border-b border-zinc-700 text-amber-400 text-xs font-semibold py-1 focus:outline-none cursor-pointer"
+                >
+                  <option value="" disabled className="bg-zinc-950 text-zinc-500">+ Add Weapon</option>
+                  {weapons.map(w => (
+                    <option key={w.name} value={w.name} className="bg-zinc-950 text-white">
+                      {w.name} ({w.category})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Armor:</span>
-              <span className="font-bold text-slate-200">{stats.armor ? stats.armor.toFixed(0) : 0}%</span>
+
+            <div className="divide-y divide-white/[0.06]">
+              {currentWeapons.map((w, idx) => {
+                const resolved = buildState?.weapons?.find(rw => rw.name.toLowerCase() === w.name.toLowerCase());
+                return (
+                  <div key={w.name + idx} className="py-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
+                        <span className="font-bold text-sm text-white flex items-center gap-1.5">
+                          ⚔️ {w.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-mono text-emerald-400 font-bold">
+                          {resolved?.dps ? resolved.dps.toFixed(0) : '0'} DPS
+                        </span>
+                        <span className="text-xs font-mono text-zinc-400">
+                          Lv. {w.level}
+                        </span>
+                        {currentWeapons.length > 1 && (
+                          <button
+                            onClick={() => handleRemoveWeapon(idx)}
+                            className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                            title="Remove weapon"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={w.level}
+                        onChange={(e) => handleWeaponLevelChange(idx, e.target.value)}
+                        className="flex-1 accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
+                      />
+                      <span className="text-[10px] font-mono text-zinc-500 shrink-0">
+                        Scales: {(resolved?.affectedBy || []).slice(0, 3).join(', ')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Evasion:</span>
-              <span className="font-bold text-slate-200">{stats.evasion ? stats.evasion.toFixed(0) : 0}%</span>
+          </div>
+
+          {/* C. TOMES DECK (4 SLOTS) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                  Tomes Deck
+                </span>
+                <span className="text-xs font-mono text-white font-bold">
+                  ({currentTomes.length}/4)
+                </span>
+              </div>
+
+              {currentTomes.length < 4 && (
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddTome(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                  className="bg-transparent border-b border-zinc-700 text-amber-400 text-xs font-semibold py-1 focus:outline-none cursor-pointer"
+                >
+                  <option value="" disabled className="bg-zinc-950 text-zinc-500">+ Add Tome</option>
+                  {tomes.map(t => (
+                    <option key={t.name} value={t.name} className="bg-zinc-950 text-white">
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">HP Sustain/sec:</span>
-              <span className="font-bold text-emerald-400">+{buildState?.sustainPerSec?.toFixed(1) || '0.0'}/s</span>
+
+            <div className="divide-y divide-white/[0.06]">
+              {currentTomes.length === 0 ? (
+                <div className="py-4 text-xs text-zinc-500 font-mono italic">
+                  No tomes equipped. Add up to 4 tomes to activate multiplicative scaling.
+                </div>
+              ) : (
+                currentTomes.map((t, idx) => (
+                  <div key={t.name + idx} className="py-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
+                        <span className="font-bold text-sm text-white flex items-center gap-1.5">
+                          📖 {t.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-mono text-amber-400 font-bold">
+                          Tier {t.level}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveTome(idx)}
+                          className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                          title="Remove tome"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={t.level}
+                        onChange={(e) => handleTomeLevelChange(idx, e.target.value)}
+                        className="flex-1 accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
+                      />
+                      <span className="text-[10px] font-mono text-zinc-500 shrink-0">
+                        Multiplier Bracket
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Crit Chance:</span>
-              <span className="font-bold text-amber-400">
-                {stats.critChance ? stats.critChance.toFixed(0) : 5}%
-                {stats.critChance > 100 && (
-                  <span className="text-[10px] ml-1 px-1 rounded bg-amber-500/20 text-amber-300">
-                    OVERCRIT
-                  </span>
-                )}
+          </div>
+
+          {/* D. ACTIVE ITEMS INVENTORY & CATALOG PICKER */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                Items Inventory ({currentItems.reduce((acc, i) => acc + i.count, 0)})
               </span>
             </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Crit Damage:</span>
-              <span className="font-bold text-amber-400">{stats.critDamage ? stats.critDamage.toFixed(2) : 2.0}x</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Attack Speed:</span>
-              <span className="font-bold text-slate-200">{stats.attackSpeed ? stats.attackSpeed.toFixed(0) : 100}%</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Projectiles:</span>
-              <span className="font-bold text-slate-200">+{stats.projectileCount || 1}</span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-              <span className="text-slate-400">Movement Speed:</span>
-              <span className="font-bold text-slate-200">{stats.movementSpeed ? (stats.movementSpeed * 100).toFixed(0) : 100}%</span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-slate-400">Luck:</span>
-              <span className="font-bold text-purple-400">{stats.luck ? stats.luck.toFixed(0) : 0}%</span>
+
+            {/* Active Items Pills */}
+            {currentItems.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {currentItems.map((it) => (
+                  <div
+                    key={it.name}
+                    className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs"
+                  >
+                    <span className="font-medium text-white">{it.name}</span>
+                    <span className="font-mono text-amber-400 font-bold">x{it.count}</span>
+                    <button
+                      onClick={() => handleRemoveItem(it.name)}
+                      className="text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer ml-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-zinc-500 font-mono italic">No items currently equipped in inventory.</p>
+            )}
+
+            {/* Catalog Search & Add */}
+            <div className="pt-2 space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  placeholder="Search item to equip..."
+                  value={itemSearch}
+                  onChange={(e) => setItemSearch(e.target.value)}
+                  className="flex-1 bg-transparent border-b border-zinc-700 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+                <select
+                  value={selectedRarity}
+                  onChange={(e) => setSelectedRarity(e.target.value)}
+                  className="bg-transparent border-b border-zinc-700 py-1.5 text-xs text-zinc-400 focus:outline-none cursor-pointer"
+                >
+                  <option value="ALL" className="bg-zinc-950">All Rarities</option>
+                  <option value="Common" className="bg-zinc-950">Common</option>
+                  <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
+                  <option value="Rare" className="bg-zinc-950">Rare</option>
+                  <option value="Legendary" className="bg-zinc-950">Legendary</option>
+                </select>
+              </div>
+
+              <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] border-y border-white/[0.06]">
+                {filteredCatalogItems.slice(0, 12).map((it) => (
+                  <div
+                    key={it.name}
+                    onClick={() => handleAddItem(it.name)}
+                    className="flex items-center justify-between py-2 hover:bg-white/[0.02] transition-colors cursor-pointer text-xs"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-medium text-white">{it.name}</span>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase">
+                        {it.rarity}
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-amber-400 hover:text-white font-semibold">
+                      + Add to Run
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 8 DAMAGE BRACKETS VISUALIZER */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-heading font-bold text-amber-400 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-amber-400" />
-              The 8 Damage Brackets (Multiplicative)
-            </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
-              {buildState?.damageMultiplier ? buildState.damageMultiplier.toFixed(1) : '1.0'}x Total
+        {/* RIGHT PANE: Live Telemetry & Engine Inspector (5 Cols) */}
+        <div className="lg:col-span-5 space-y-10">
+          {/* A. HEADLINE POWER OUTPUT (BIG KEYNOTE NUMBERS) */}
+          <div className="space-y-4">
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500 block">
+              Calculated Power Output
             </span>
+
+            <div className="grid grid-cols-2 gap-6 py-4 border-y border-white/[0.08] font-mono">
+              <div>
+                <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Total Output DPS</div>
+                <div className="text-4xl font-extrabold text-emerald-400 mt-1">
+                  {buildState?.totalDps ? buildState.totalDps.toFixed(0) : '0'}
+                </div>
+                <div className="text-xs text-zinc-500 mt-0.5">composite damage</div>
+              </div>
+
+              <div>
+                <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Effective HP</div>
+                <div className="text-4xl font-extrabold text-cyan-400 mt-1">
+                  {buildState?.ehp ? buildState.ehp.toFixed(0) : '0'}
+                </div>
+                <div className="text-xs text-zinc-500 mt-0.5">survival buffer</div>
+              </div>
+            </div>
           </div>
 
-          <p className="text-xs text-slate-400 mb-4">
-            Independent categories that multiply together. Avoid stacking only one bracket!
-          </p>
+          {/* B. COMBAT TELEMETRY SPEC SHEET */}
+          <div className="space-y-3">
+            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500 block">
+              Combat Telemetry Specs
+            </span>
 
-          <div className="space-y-3 font-mono text-xs">
-            {/* Bracket 1 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B1: Damage Tome</span>
-                <span className="font-bold text-amber-400">{brackets.b1_damageTome?.toFixed(2)}x</span>
+            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08] text-xs font-mono">
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Max Hitpoints</span>
+                <span className="font-bold text-white">{stats.maxHp ? stats.maxHp.toFixed(0) : 100}</span>
               </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b1_damageTome || 1) * 35)}%` }}
-                ></div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Armor Reduction</span>
+                <span className="font-bold text-white">{stats.armor ? stats.armor.toFixed(0) : 0}%</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Evasion Rate</span>
+                <span className="font-bold text-white">{stats.evasion ? stats.evasion.toFixed(0) : 0}%</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">HP Sustain / sec</span>
+                <span className="font-bold text-emerald-400">+{buildState?.sustainPerSec?.toFixed(1) || '0.0'}/s</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Critical Strike Chance</span>
+                <span className="font-bold text-amber-400">
+                  {stats.critChance ? stats.critChance.toFixed(0) : 5}%
+                  {stats.critChance > 100 && (
+                    <span className="text-[10px] ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-400/10 text-amber-300 font-bold">
+                      OVERCRIT
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Critical Damage Multiplier</span>
+                <span className="font-bold text-amber-400">{stats.critDamage ? stats.critDamage.toFixed(2) : 2.0}x</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Attack Speed Ratio</span>
+                <span className="font-bold text-white">{stats.attackSpeed ? stats.attackSpeed.toFixed(0) : 100}%</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Bonus Projectiles</span>
+                <span className="font-bold text-white">+{stats.projectileCount || 1}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Movement Speed</span>
+                <span className="font-bold text-white">{stats.movementSpeed ? (stats.movementSpeed * 100).toFixed(0) : 100}%</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-zinc-400 font-sans">Luck Factor</span>
+                <span className="font-bold text-purple-400">{stats.luck ? stats.luck.toFixed(0) : 0}%</span>
               </div>
             </div>
+          </div>
 
-            {/* Bracket 2 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B2: Character Passive</span>
-                <span className="font-bold text-amber-400">{brackets.b2_passive?.toFixed(2)}x</span>
-              </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-orange-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b2_passive || 1) * 35)}%` }}
-                ></div>
-              </div>
+          {/* C. MULTIPLICATIVE DAMAGE BRACKETS (8 BRACKETS) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+                Multiplicative Brackets
+              </span>
+              <span className="text-xs font-mono text-emerald-400 font-bold">
+                {buildState?.damageMultiplier ? buildState.damageMultiplier.toFixed(1) : '1.0'}x Total
+              </span>
             </div>
 
-            {/* Bracket 3 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B3: Flat Item Damage</span>
-                <span className="font-bold text-amber-400">{brackets.b3_flatItems?.toFixed(2)}x</span>
-              </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b3_flatItems || 1) * 35)}%` }}
-                ></div>
-              </div>
-            </div>
+            <p className="text-xs text-zinc-400 font-light leading-relaxed">
+              Separate categories multiply together. Spread upgrades across brackets to defeat diminishing returns.
+            </p>
 
-            {/* Bracket 4 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B4: Main Damage %</span>
-                <span className="font-bold text-amber-400">{brackets.b4_mainDamage?.toFixed(2)}x</span>
+            <div className="space-y-3 font-mono text-xs">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B1: Damage Tome</span>
+                  <span className="font-bold text-amber-400">{brackets.b1_damageTome?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b1_damageTome || 1) * 35)}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b4_mainDamage || 1) * 35)}%` }}
-                ></div>
-              </div>
-            </div>
 
-            {/* Bracket 6 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B6: Attack Speed</span>
-                <span className="font-bold text-amber-400">{brackets.b6_attackSpeed?.toFixed(2)}x</span>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B2: Character Passive</span>
+                  <span className="font-bold text-amber-400">{brackets.b2_passive?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b2_passive || 1) * 35)}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-cyan-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b6_attackSpeed || 1) * 35)}%` }}
-                ></div>
-              </div>
-            </div>
 
-            {/* Bracket 7 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-slate-400">B7: Crit Expectation</span>
-                <span className="font-bold text-amber-400">{brackets.b7_crit?.toFixed(2)}x</span>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B3: Flat Item Damage</span>
+                  <span className="font-bold text-amber-400">{brackets.b3_flatItems?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b3_flatItems || 1) * 35)}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-purple-500 rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (brackets.b7_crit || 1) * 35)}%` }}
-                ></div>
+
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B4: Main Damage %</span>
+                  <span className="font-bold text-amber-400">{brackets.b4_mainDamage?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b4_mainDamage || 1) * 35)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B6: Attack Speed</span>
+                  <span className="font-bold text-amber-400">{brackets.b6_attackSpeed?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-cyan-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b6_attackSpeed || 1) * 35)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-zinc-400">B7: Crit Expectation</span>
+                  <span className="font-bold text-amber-400">{brackets.b7_crit?.toFixed(2)}x</span>
+                </div>
+                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-400 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (brackets.b7_crit || 1) * 35)}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>

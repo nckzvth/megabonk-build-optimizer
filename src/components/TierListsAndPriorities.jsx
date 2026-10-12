@@ -42,41 +42,48 @@ export default function TierListsAndPriorities({
 
   const subTabs = [
     { id: 'stats', label: 'Stat Priorities', count: `${statPriorities.length}` },
-    { id: 'tomes', label: 'Tomes Tier List', count: '23' },
-    { id: 'weapons', label: 'Weapons Tier List', count: '29' },
-    { id: 'items', label: 'Items Tier List', count: '78' },
+    { id: 'tomes', label: 'Tomes', count: '23' },
+    { id: 'weapons', label: 'Weapons', count: '29' },
+    { id: 'items', label: 'Items', count: '78' },
   ];
 
-  const tierBadgeStyles = {
-    S: 'bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/20',
-    A: 'bg-purple-500 text-white font-bold shadow-md shadow-purple-500/20',
-    B: 'bg-blue-500 text-white font-bold',
-    C: 'bg-zinc-700 text-zinc-300 font-bold',
+  const tierColors = {
+    S: 'text-amber-400',
+    A: 'text-purple-400',
+    B: 'text-blue-400',
+    C: 'text-zinc-500',
   };
 
-  const currentPurposeObj = purposes.find(p => p.id === purpose) || purposes[0];
+  const tierDescriptions = {
+    S: 'Top mathematical value for your current weapons and purpose',
+    A: 'High value scaling choices with solid multiplier efficiency',
+    B: 'Situational augments or late-game ramp choices',
+    C: 'Lower marginal scaling for this build goal',
+  };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      {/* 1. APPLE-STYLE HEADER & PURPOSE BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+    <div className="space-y-10 max-w-6xl mx-auto py-4">
+      {/* 1. EDITORIAL HEADER & PURPOSE RIBBON (BORDERLESS) */}
+      <div className="pb-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <BarChart3 className="w-5 h-5 text-amber-400" />
-            Dynamic Tier Lists & Stat Priorities
-          </h2>
-          <p className="text-xs text-zinc-400 mt-1">
-            Re-ranks every tome, weapon, and item in real time based on <strong className="text-zinc-200">{buildState?.character?.name}</strong> and your chosen purpose.
+          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold block mb-1">
+            Engine Calibration
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            Dynamic Tier Lists & Priorities
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-light">
+            Mathematically re-ranked for <strong className="text-white font-medium">{buildState?.character?.name}</strong> based on uncrowded damage brackets.
           </p>
         </div>
 
-        {/* Purpose Indicator & Dropdown */}
-        <div className="flex items-center gap-2">
+        {/* Goal Selector Pill */}
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-zinc-500 font-mono hidden sm:inline">Active Goal:</span>
           <select
             value={purpose}
             onChange={(e) => setPurpose && setPurpose(e.target.value)}
-            className="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-amber-300 font-semibold rounded-full px-3.5 py-1.5 text-xs focus:outline-none cursor-pointer transition-all"
+            className="bg-transparent border-b border-zinc-700 hover:border-zinc-400 text-amber-300 font-semibold py-1 px-1 text-xs focus:outline-none cursor-pointer transition-colors"
           >
             {purposes.map(p => (
               <option key={p.id} value={p.id} className="bg-zinc-950 text-zinc-200">
@@ -88,8 +95,8 @@ export default function TierListsAndPriorities({
       </div>
 
       {/* 2. APPLE-STYLE SEGMENTED SUB-TABS (NEVER scrolls horizontally) */}
-      <div className="flex items-center justify-center sm:justify-start">
-        <div className="bg-white/[0.04] p-1 rounded-full border border-white/[0.08] inline-flex items-center gap-1">
+      <div className="flex items-center justify-start">
+        <div className="bg-white/[0.04] p-0.5 rounded-full border border-white/[0.08] inline-flex items-center gap-0.5">
           {subTabs.map((tab) => {
             const isActive = activeSubTab === tab.id;
             return (
@@ -114,24 +121,15 @@ export default function TierListsAndPriorities({
         </div>
       </div>
 
-      {/* 3. SUB-TAB: PURE STAT PRIORITIES */}
+      {/* 3. SUB-TAB: PURE STAT PRIORITIES (APPLE SPEC SHEET LIST, ZERO CARDS) */}
       {activeSubTab === 'stats' && (
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
-            <div>
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Pure Stat Priority Ranking
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Calculates the marginal multiplier of adding raw unmixed stats to your current loadout.
-              </p>
-            </div>
-            <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
-              #1 Stat: {statPriorities[0]?.name}
-            </span>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-zinc-500 pb-2">
+            <span>Priority Rank & Statistic</span>
+            <span>Marginal Scaling & Score</span>
           </div>
 
-          <div className="space-y-3 pt-2">
+          <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
             {statPriorities.map((stat, idx) => {
               const isTop = idx === 0;
               const maxScore = Math.max(1, statPriorities[0]?.compositeScore || 50);
@@ -140,53 +138,51 @@ export default function TierListsAndPriorities({
               return (
                 <div
                   key={stat.id}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    isTop
-                      ? 'bg-amber-400/[0.03] border-amber-400/40 ring-1 ring-amber-400/20 shadow-md shadow-amber-400/5'
-                      : 'bg-white/[0.02] hover:bg-white/[0.04] border-white/[0.05]'
+                  className={`py-4 transition-colors ${
+                    isTop ? 'bg-amber-400/[0.02]' : 'hover:bg-white/[0.01]'
                   }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 font-mono text-xs">
-                    <div className="flex items-center gap-2.5">
-                      <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${
-                        isTop ? 'bg-amber-400 text-slate-950' : 'bg-white/[0.06] text-zinc-400'
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className={`font-mono text-xs font-bold w-6 ${
+                        isTop ? 'text-amber-400' : 'text-zinc-600'
                       }`}>
-                        {idx + 1}
+                        {idx < 9 ? `0${idx + 1}` : idx + 1}
                       </span>
                       <span className="text-base">{stat.icon}</span>
-                      <span className="font-sans font-bold text-white text-sm">{stat.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-zinc-400 border border-white/[0.06]">
+                      <span className="font-bold text-white text-sm tracking-tight">{stat.name}</span>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-white/[0.04] text-zinc-400">
                         {stat.category}
                       </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                        stat.status === 'Essential Peak' ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30' :
-                        stat.status === 'Strong Scaling' ? 'bg-emerald-400/15 text-emerald-300 border border-emerald-400/30' :
-                        'bg-white/[0.04] text-zinc-400'
+                      <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full font-semibold ${
+                        stat.status === 'Essential Peak' ? 'text-amber-400 bg-amber-400/10' :
+                        stat.status === 'Strong Scaling' ? 'text-emerald-400 bg-emerald-400/10' :
+                        'text-zinc-500 bg-white/[0.02]'
                       }`}>
                         {stat.status}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-4 text-xs font-mono pl-9 sm:pl-0">
                       <span className="text-emerald-400 font-semibold">+{stat.dpsGainPct.toFixed(1)}% DPS</span>
                       <span className="text-cyan-400 font-semibold">+{stat.ehpGainPct.toFixed(1)}% EHP</span>
-                      <span className="text-amber-400 font-bold">Score: {stat.compositeScore.toFixed(0)}</span>
+                      <span className="text-amber-400 font-bold">{stat.compositeScore.toFixed(0)} pts</span>
                     </div>
                   </div>
 
-                  {/* Sleek Progress Bar */}
-                  <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden mb-2">
+                  {/* Clean Hairline Gauge */}
+                  <div className="w-full h-0.5 bg-white/[0.06] rounded-full overflow-hidden mb-2">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        isTop
-                          ? 'bg-gradient-to-r from-amber-400 to-emerald-400'
-                          : 'bg-zinc-500'
+                      className={`h-full rounded-full ${
+                        isTop ? 'bg-amber-400' : 'bg-zinc-600'
                       }`}
                       style={{ width: `${barWidth}%` }}
-                    ></div>
+                    />
                   </div>
 
-                  <p className="text-xs text-zinc-400 font-sans">{stat.description}</p>
+                  <p className="text-xs text-zinc-400 font-light pl-9 sm:pl-9 leading-relaxed">
+                    {stat.description}
+                  </p>
                 </div>
               );
             })}
@@ -194,58 +190,60 @@ export default function TierListsAndPriorities({
         </div>
       )}
 
-      {/* 4. SUB-TAB: TOMES TIER LIST */}
+      {/* 4. SUB-TAB: TOMES TIER LIST (BORDERLESS PRO LEDGER, ZERO CARDS) */}
       {activeSubTab === 'tomes' && (
-        <div className="space-y-6">
+        <div className="space-y-12">
           {['S', 'A', 'B', 'C'].map((tier) => {
             const tomesInTier = tomesTierList[tier] || [];
             return (
-              <div key={tier} className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/[0.06] pb-4">
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${tierBadgeStyles[tier]}`}>
+              <div key={tier} className="space-y-4">
+                {/* Tier Headline */}
+                <div className="flex items-baseline gap-3 pb-2 border-b border-white/[0.08]">
+                  <span className={`text-2xl font-black font-mono ${tierColors[tier]}`}>
                     {tier}
                   </span>
-                  <div>
-                    <h4 className="font-bold text-white text-base tracking-tight">
-                      {tier}-Tier Tomes ({tomesInTier.length})
-                    </h4>
-                    <p className="text-xs text-zinc-400">
-                      {tier === 'S' ? 'Top mathematical value for your current weapons and purpose' :
-                       tier === 'A' ? 'High value scaling choices with solid multiplier efficiency' :
-                       tier === 'B' ? 'Situational augments or late-game ramp' :
-                       'Lower marginal scaling for this build goal'}
-                    </p>
-                  </div>
+                  <span className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                    Tier Tomes ({tomesInTier.length})
+                  </span>
+                  <span className="text-xs text-zinc-500 font-light hidden sm:inline">
+                    — {tierDescriptions[tier]}
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Ledger Rows */}
+                <div className="divide-y divide-white/[0.06]">
                   {tomesInTier.map((t) => (
                     <div
                       key={t.name}
-                      className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] transition-all flex flex-col justify-between"
+                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-bold text-sm text-zinc-100 flex items-center gap-1.5">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-bold text-sm text-white flex items-center gap-1.5">
                             📖 {t.name}
                           </span>
-                          <span className="font-mono text-xs text-amber-400 font-semibold">
-                            {t.score.toFixed(0)} pts
+                          <span className="text-[10px] font-mono text-zinc-500 uppercase px-2 py-0.5 rounded-full bg-white/[0.04]">
+                            Bracket #{t.bracket || 0}
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{t.ability}</p>
-                        <p className="text-[11px] text-zinc-500 font-sans italic mb-3">
+                        <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                          {t.ability}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 font-light italic">
                           {t.rationale}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                      <div className="flex items-center gap-4 shrink-0 sm:self-center">
+                        <span className="text-xs font-mono text-emerald-400 font-semibold">
                           +{t.dpsGainPct.toFixed(1)}% DPS
+                        </span>
+                        <span className="text-xs font-mono text-amber-400 font-bold min-w-14 text-right">
+                          {t.score.toFixed(0)} pts
                         </span>
                         <button
                           onClick={() => onApplyUpgrade({ name: t.name, type: 'tome' })}
-                          className="px-3 py-1 rounded-full bg-white/[0.05] hover:bg-amber-400 hover:text-black text-zinc-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1"
+                          className="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/[0.06] hover:bg-white text-zinc-300 hover:text-black transition-all cursor-pointer flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" /> Equip
                         </button>
@@ -259,58 +257,63 @@ export default function TierListsAndPriorities({
         </div>
       )}
 
-      {/* 5. SUB-TAB: WEAPONS TIER LIST */}
+      {/* 5. SUB-TAB: WEAPONS TIER LIST (BORDERLESS PRO LEDGER, ZERO CARDS) */}
       {activeSubTab === 'weapons' && (
-        <div className="space-y-6">
+        <div className="space-y-12">
           {['S', 'A', 'B', 'C'].map((tier) => {
             const weaponsInTier = weaponsTierList[tier] || [];
             return (
-              <div key={tier} className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/[0.06] pb-4">
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${tierBadgeStyles[tier]}`}>
+              <div key={tier} className="space-y-4">
+                {/* Tier Headline */}
+                <div className="flex items-baseline gap-3 pb-2 border-b border-white/[0.08]">
+                  <span className={`text-2xl font-black font-mono ${tierColors[tier]}`}>
                     {tier}
                   </span>
-                  <div>
-                    <h4 className="font-bold text-white text-base tracking-tight">
-                      {tier}-Tier Weapons ({weaponsInTier.length})
-                    </h4>
-                    <p className="text-xs text-zinc-400">
-                      Ranked dynamically by synergy with {buildState?.character?.name}'s passive and projectile scaling tags.
-                    </p>
-                  </div>
+                  <span className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                    Tier Weapons ({weaponsInTier.length})
+                  </span>
+                  <span className="text-xs text-zinc-500 font-light hidden sm:inline">
+                    — Ranked dynamically by synergy with {buildState?.character?.name}'s tags
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* Ledger Rows */}
+                <div className="divide-y divide-white/[0.06]">
                   {weaponsInTier.map((w) => (
                     <div
                       key={w.name}
-                      className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] transition-all flex flex-col justify-between"
+                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-bold text-sm text-zinc-100 flex items-center gap-1.5">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-bold text-sm text-white flex items-center gap-1.5">
                             ⚔️ {w.name}
                           </span>
-                          <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-zinc-400 border border-white/[0.06]">
+                          <span className="text-[10px] font-mono text-zinc-500 uppercase px-2 py-0.5 rounded-full bg-white/[0.04]">
                             {w.category}
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{w.description}</p>
-                        <p className="text-[11px] text-amber-400/90 font-mono mb-2">
+                        <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                          {w.description}
+                        </p>
+                        <p className="text-[11px] text-amber-400/80 font-mono">
                           Scales: {w.affectedBy.join(', ')}
                         </p>
-                        <p className="text-[11px] text-zinc-500 font-sans italic mb-3">
+                        <p className="text-[11px] text-zinc-500 font-light italic">
                           {w.rationale}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                      <div className="flex items-center gap-4 shrink-0 sm:self-center">
+                        <span className="text-xs font-mono text-emerald-400 font-semibold">
                           +{w.dpsGainPct.toFixed(1)}% DPS
+                        </span>
+                        <span className="text-xs font-mono text-amber-400 font-bold min-w-14 text-right">
+                          {w.score.toFixed(0)} pts
                         </span>
                         <button
                           onClick={() => onApplyUpgrade({ name: w.name, type: 'weapon' })}
-                          className="px-3 py-1 rounded-full bg-white/[0.05] hover:bg-amber-400 hover:text-black text-zinc-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1"
+                          className="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/[0.06] hover:bg-white text-zinc-300 hover:text-black transition-all cursor-pointer flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" /> Equip
                         </button>
@@ -324,60 +327,65 @@ export default function TierListsAndPriorities({
         </div>
       )}
 
-      {/* 6. SUB-TAB: ITEMS TIER LIST */}
+      {/* 6. SUB-TAB: ITEMS TIER LIST (BORDERLESS PRO LEDGER, ZERO CARDS) */}
       {activeSubTab === 'items' && (
-        <div className="space-y-6">
+        <div className="space-y-12">
           {['S', 'A', 'B', 'C'].map((tier) => {
             const itemsInTier = itemsTierList[tier] || [];
             return (
-              <div key={tier} className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/[0.06] pb-4">
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${tierBadgeStyles[tier]}`}>
+              <div key={tier} className="space-y-4">
+                {/* Tier Headline */}
+                <div className="flex items-baseline gap-3 pb-2 border-b border-white/[0.08]">
+                  <span className={`text-2xl font-black font-mono ${tierColors[tier]}`}>
                     {tier}
                   </span>
-                  <div>
-                    <h4 className="font-bold text-white text-base tracking-tight">
-                      {tier}-Tier Items ({itemsInTier.length})
-                    </h4>
-                    <p className="text-xs text-zinc-400">
-                      Ranked dynamically by synergy with your 4 active weapons and damage multipliers.
-                    </p>
-                  </div>
+                  <span className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                    Tier Items ({itemsInTier.length})
+                  </span>
+                  <span className="text-xs text-zinc-500 font-light hidden sm:inline">
+                    — Scaled with your current 4 active weapons and multipliers
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* Ledger Rows */}
+                <div className="divide-y divide-white/[0.06]">
                   {itemsInTier.map((it) => (
                     <div
                       key={it.name}
-                      className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] transition-all flex flex-col justify-between"
+                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-bold text-sm text-zinc-100 flex items-center gap-1.5">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-bold text-sm text-white flex items-center gap-1.5">
                             💎 {it.name}
                           </span>
-                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                            it.rarity === 'Legendary' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' :
-                            it.rarity === 'Rare' ? 'text-purple-400 border-purple-500/30 bg-purple-500/10' :
-                            it.rarity === 'Uncommon' ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' :
-                            'text-zinc-400 border-zinc-700 bg-zinc-800/40'
+                          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full ${
+                            it.rarity === 'Legendary' ? 'text-amber-400 bg-amber-400/10' :
+                            it.rarity === 'Rare' ? 'text-purple-400 bg-purple-400/10' :
+                            it.rarity === 'Uncommon' ? 'text-blue-400 bg-blue-400/10' :
+                            'text-zinc-500 bg-white/[0.04]'
                           }`}>
                             {it.rarity}
                           </span>
                         </div>
-                        <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{it.description}</p>
-                        <p className="text-[11px] text-zinc-500 font-sans italic mb-3">
+                        <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                          {it.description}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 font-light italic">
                           {it.rationale}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                        <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+                      <div className="flex items-center gap-4 shrink-0 sm:self-center">
+                        <span className="text-xs font-mono text-emerald-400 font-semibold">
                           +{it.dpsGainPct.toFixed(1)}% DPS
+                        </span>
+                        <span className="text-xs font-mono text-amber-400 font-bold min-w-14 text-right">
+                          {it.score.toFixed(0)} pts
                         </span>
                         <button
                           onClick={() => onApplyUpgrade({ name: it.name, type: 'item' })}
-                          className="px-3 py-1 rounded-full bg-white/[0.05] hover:bg-amber-400 hover:text-black text-zinc-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1"
+                          className="px-3.5 py-1 rounded-full text-xs font-semibold bg-white/[0.06] hover:bg-white text-zinc-300 hover:text-black transition-all cursor-pointer flex items-center gap-1"
                         >
                           <Plus className="w-3 h-3" /> Equip
                         </button>

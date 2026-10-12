@@ -9,7 +9,8 @@ export default function SearchableSelect({
   categoryFilterEnabled = true,
   className = '',
   size = 'md',
-  showDescription = true
+  showDescription = true,
+  variant = 'default'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -131,9 +132,12 @@ export default function SearchableSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3 py-2 text-left transition-all cursor-pointer backdrop-blur-md ${
-          isOpen ? 'ring-1 ring-amber-400 border-amber-400 bg-white/[0.08]' : ''
-        } ${size === 'lg' ? 'py-2.5 text-sm' : 'text-xs'}`}
+        className={variant === 'inline'
+          ? `w-full flex items-center justify-between gap-2 bg-transparent border-b ${isOpen ? 'border-amber-400' : 'border-zinc-800 hover:border-zinc-500'} py-2 text-left transition-all cursor-pointer`
+          : `w-full flex items-center justify-between gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3 py-2 text-left transition-all cursor-pointer backdrop-blur-md ${
+              isOpen ? 'ring-1 ring-amber-400 border-amber-400 bg-white/[0.08]' : ''
+            } ${size === 'lg' ? 'py-2.5 text-sm' : 'text-xs'}`
+        }
       >
         <div className="flex items-center gap-2 min-w-0">
           {selectedOption ? (
@@ -183,13 +187,13 @@ export default function SearchableSelect({
 
             {/* Quick Category Filter Pills */}
             {categoryFilterEnabled && (
-              <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-white/[0.06] overflow-x-auto text-[10px]">
+              <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-white/[0.06] text-[10px] flex-wrap">
                 {['ALL', 'TOME', 'WEAPON', 'ITEM'].map(cat => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setActiveTab(cat)}
-                    className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                    className={`px-2.5 py-0.5 rounded-full font-semibold transition-all cursor-pointer ${
                       activeTab === cat
                         ? 'bg-amber-400 text-slate-950 shadow-sm'
                         : 'bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
@@ -205,7 +209,7 @@ export default function SearchableSelect({
           {/* Options List */}
           <div ref={listRef} className="max-h-60 overflow-y-auto p-1 divide-y divide-white/[0.04]">
             {filteredOptions.length === 0 ? (
-              <div className="p-4 text-center text-xs text-slate-500">
+              <div className="p-4 text-center text-xs text-zinc-500 font-mono">
                 No matching options found for "<span className="text-amber-400 font-bold">{search}</span>"
               </div>
             ) : (
@@ -220,16 +224,16 @@ export default function SearchableSelect({
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     className={`p-2 rounded-xl flex items-start justify-between gap-2 cursor-pointer transition-all ${
                       isSelected
-                        ? 'bg-amber-500/15 text-amber-300'
+                        ? 'bg-amber-400/15 text-amber-300'
                         : isHighlighted
-                        ? 'bg-slate-850 text-white'
-                        : 'text-slate-300 hover:bg-slate-900'
+                        ? 'bg-white/[0.08] text-white'
+                        : 'text-zinc-300 hover:bg-white/[0.03]'
                     }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         {getTypeIcon(opt.type)}
-                        <span className={`text-xs font-bold truncate ${isSelected ? 'text-amber-400' : 'text-slate-100'}`}>
+                        <span className={`text-xs font-bold truncate ${isSelected ? 'text-amber-400' : 'text-zinc-100'}`}>
                           {opt.name}
                         </span>
                         {opt.rarity && (
@@ -238,7 +242,7 @@ export default function SearchableSelect({
                           </span>
                         )}
                         {opt.tier && (
-                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-400">
+                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/[0.06] text-zinc-400">
                             Tier {opt.tier}
                           </span>
                         )}

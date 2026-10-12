@@ -171,165 +171,107 @@ export default function UpgradeAdvisor({
   ];
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      {/* 1. APPLE-STYLE UNIFIED RUN CONSOLE */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 backdrop-blur-2xl shadow-xl transition-all">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-          {/* Hero Picker */}
-          <div className="md:col-span-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Hero Character
-              </span>
-              <button
-                onClick={() => setShowSyncInfo(!showSyncInfo)}
-                className="text-[11px] text-zinc-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <Info className="w-3 h-3" /> Sync info
-              </button>
-            </div>
-            <SearchableSelect
-              options={characterOptions}
-              value={character}
-              onChange={(val) => handleCharacterChange(val)}
-              placeholder="Select hero..."
-              categoryFilterEnabled={false}
-              size="lg"
-            />
-            <p className="text-xs text-zinc-400 leading-relaxed font-sans line-clamp-2">
-              <strong className="text-amber-400 font-medium">Passive:</strong> {buildState?.character?.passive}
-            </p>
-          </div>
-
-          {/* Level Slider */}
-          <div className="md:col-span-4 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Run Level
-              </span>
-              <span className="font-mono font-bold text-sm text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
-                Lv. {level}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={level}
-              onChange={(e) => setLevel(parseInt(e.target.value))}
-              className="w-full accent-amber-400 cursor-pointer h-1.5 bg-white/[0.08] rounded-full"
-            />
-            <div className="flex justify-between text-[11px] text-zinc-500 font-mono">
-              <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1</button>
-              <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25</button>
-              <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50</button>
-              <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
-            </div>
-          </div>
-
-          {/* Run Purpose Goal */}
-          <div className="md:col-span-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                Run Purpose
-              </span>
-              <span className="text-[11px] font-mono font-semibold text-amber-400">
-                Active Goal
-              </span>
-            </div>
-            <select
-              value={activePurpose}
-              onChange={(e) => setPurpose && setPurpose(e.target.value)}
-              className="w-full bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3.5 py-2.5 text-xs text-amber-300 font-semibold focus:outline-none cursor-pointer transition-all"
+    <div className="space-y-12 max-w-6xl mx-auto py-4">
+      {/* 1. RUN SETUP RIBBON (BORDERLESS, TYPOGRAPHIC) */}
+      <div className="pb-8 border-b border-white/[0.08] flex flex-col md:flex-row md:items-end justify-between gap-8">
+        {/* Hero Character */}
+        <div className="space-y-1.5 md:w-1/3">
+          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+            <span>Hero Character</span>
+            <button
+              onClick={() => setShowSyncInfo(!showSyncInfo)}
+              className="text-[11px] text-zinc-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              {objectives.map((obj) => (
-                <option key={obj.id} value={obj.id} className="bg-zinc-950 text-zinc-200">
-                  {obj.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-zinc-400 leading-relaxed truncate">
-              {objectives.find(o => o.id === activePurpose)?.desc}
-            </p>
+              <Info className="w-3 h-3" /> Steam sync?
+            </button>
+          </div>
+          <SearchableSelect
+            options={characterOptions}
+            value={character}
+            onChange={(val) => handleCharacterChange(val)}
+            placeholder="Select hero..."
+            categoryFilterEnabled={false}
+            variant="inline"
+          />
+          <div className="text-xs text-zinc-400 pt-1 font-sans">
+            <span className="text-amber-400 font-medium">Passive:</span> {buildState?.character?.passive}
           </div>
         </div>
 
-        {/* Sync Info Note */}
-        {showSyncInfo && (
-          <div className="mt-4 pt-4 border-t border-white/[0.06] text-xs text-zinc-400 leading-relaxed font-sans">
-            <p>
-              Megabonk runs as a native desktop executable without a browser bridge. This optimizer lets you type or roll offered upgrades instantly to find the mathematical optimum in seconds.
-            </p>
+        {/* Level Slider */}
+        <div className="space-y-2 md:w-1/3">
+          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+            <span>Level Progression</span>
+            <span className="text-amber-400 font-bold font-sans text-sm">Lv. {level}</span>
           </div>
-        )}
+          <input
+            type="range"
+            min="1"
+            max="100"
+            value={level}
+            onChange={(e) => setLevel(parseInt(e.target.value))}
+            className="w-full accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
+          />
+          <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+            <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1 (Start)</button>
+            <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25 (Mid)</button>
+            <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50 (Boss)</button>
+            <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
+          </div>
+        </div>
 
-        {/* Collapsible Loadout Disclosure */}
-        <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs">
-          <button
-            onClick={() => setShowLoadoutDrawer(!showLoadoutDrawer)}
-            className="text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 font-medium cursor-pointer"
+        {/* Strategic Purpose */}
+        <div className="space-y-1.5 md:w-1/4">
+          <label className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block">
+            Run Goal
+          </label>
+          <select
+            value={activePurpose}
+            onChange={(e) => setPurpose && setPurpose(e.target.value)}
+            className="w-full bg-transparent border-b border-zinc-800 hover:border-zinc-500 py-2 text-sm text-amber-300 font-semibold focus:outline-none cursor-pointer transition-colors"
           >
-            <Sliders className="w-3.5 h-3.5 text-amber-400" />
-            <span>{showLoadoutDrawer ? 'Hide Equipped Loadout' : `View Equipped Loadout (${currentWeapons.length} Weapons • ${currentTomes.length} Tomes)`}</span>
-            {showLoadoutDrawer ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
-
-          <span className="text-zinc-500 font-mono text-[11px]">
-            {buildState?.weapons?.length || 0} Weapons active • {buildState?.totalDps?.toFixed(0)} DPS
-          </span>
-        </div>
-
-        {/* Loadout Chips Drawer */}
-        {showLoadoutDrawer && (
-          <div className="mt-4 pt-4 border-t border-white/[0.06] grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-            <div>
-              <span className="text-zinc-500 uppercase text-[10px] tracking-wider font-semibold block mb-2">Weapons:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {currentWeapons.map((w, idx) => (
-                  <span key={w.name + idx} className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-300">
-                    ⚔️ {w.name} <strong className="text-amber-400">Lv.{w.level}</strong>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <span className="text-zinc-500 uppercase text-[10px] tracking-wider font-semibold block mb-2">Tomes:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {currentTomes.map((t, idx) => (
-                  <span key={t.name + idx} className="px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] text-zinc-300">
-                    📖 {t.name} <strong className="text-amber-400">Lv.{t.level}</strong>
-                  </span>
-                ))}
-              </div>
-            </div>
+            {objectives.map((obj) => (
+              <option key={obj.id} value={obj.id} className="bg-zinc-950 text-zinc-200">
+                {obj.label}
+              </option>
+            ))}
+          </select>
+          <div className="text-[11px] text-zinc-500 truncate font-sans">
+            {objectives.find(o => o.id === activePurpose)?.desc}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 2. OFFERED UPGRADES DECK */}
+      {/* Sync Info Modal Note */}
+      {showSyncInfo && (
+        <div className="p-4 border-l-2 border-amber-400 bg-amber-400/[0.02] text-xs text-zinc-400 font-sans leading-relaxed">
+          *Megabonk* runs locally as a native Steam executable without a browser API. To optimize on the fly, type your 4 level-up rolls into the slots below to get the instantaneous mathematical answer.
+        </div>
+      )}
+
+      {/* 2. THE LEVEL-UP STAGE: 4 OPEN UPGRADE SLOTS (ZERO CARDS) */}
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              Offered Upgrades
+            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block mb-1">
+              Interactive Stage
+            </span>
+            <h2 className="text-xl font-bold tracking-tight text-white">
+              Current Level-Up Offerings
             </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Enter the upgrades presented on your level-up screen to calculate the optimal choice.
-            </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={rollRandomOffers}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-zinc-200 text-xs font-medium transition-all cursor-pointer"
+              className="px-4 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
             >
               <Dices className="w-3.5 h-3.5 text-amber-400" />
               <span>Simulate Roll</span>
             </button>
             <button
               onClick={() => setShowMathDetails(!showMathDetails)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-zinc-200 text-xs font-medium transition-all cursor-pointer"
+              className="px-4 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
             >
               <Calculator className="w-3.5 h-3.5 text-amber-400" />
               <span>{showMathDetails ? 'Hide Proof' : 'Formula Proof'}</span>
@@ -337,84 +279,78 @@ export default function UpgradeAdvisor({
           </div>
         </div>
 
-        {/* 4 Single-Layer Upgrade Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 4 Open Architectural Columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-6 border-y border-white/[0.08]">
           {offers.map((offer, idx) => {
             const isWinner = bestChoice && bestChoice.name.toLowerCase() === offer.name.toLowerCase();
             return (
-              <div
-                key={offer.id || idx}
-                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
-                  isWinner
-                    ? 'bg-amber-500/[0.04] border-amber-400/60 ring-1 ring-amber-400/30 shadow-xl shadow-amber-500/10'
-                    : 'bg-white/[0.02] hover:bg-white/[0.04] border-white/[0.07]'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 font-semibold">
-                      Slot #{idx + 1}
-                    </span>
-                    {offers.length > 2 && (
-                      <button
-                        onClick={() => removeOfferSlot(idx)}
-                        className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
-                        title="Remove slot"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+              <div key={offer.id || idx} className="space-y-3 relative flex flex-col justify-between">
+                <div className="space-y-3">
+                  {/* Slot Number & Winner Tag */}
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-zinc-600 tracking-wider">SLOT 0{idx + 1}</span>
+                    {isWinner ? (
+                      <span className="text-amber-400 font-sans font-bold text-[11px] uppercase tracking-wider flex items-center gap-1">
+                        ★ Best Choice
+                      </span>
+                    ) : (
+                      offers.length > 2 && (
+                        <button
+                          onClick={() => removeOfferSlot(idx)}
+                          className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                          title="Remove slot"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )
                     )}
                   </div>
 
-                  {/* Searchable Select */}
-                  <div className="space-y-2 mb-3">
-                    <SearchableSelect
-                      options={allChoices}
-                      value={offer.name}
-                      onChange={(newName, optObj) => handleOfferNameChange(idx, newName, optObj)}
-                      placeholder="Search upgrade..."
-                      categoryFilterEnabled={true}
-                    />
+                  {/* Borderless Inline Selector */}
+                  <SearchableSelect
+                    options={allChoices}
+                    value={offer.name}
+                    onChange={(newName, optObj) => handleOfferNameChange(idx, newName, optObj)}
+                    placeholder="Search upgrade..."
+                    categoryFilterEnabled={true}
+                    variant="inline"
+                  />
 
-                    {/* Rarity & Type */}
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={offer.rarity}
-                        onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
-                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-2 py-1 text-[11px] text-zinc-300 focus:outline-none cursor-pointer"
-                      >
-                        <option value="Common" className="bg-zinc-950">Common</option>
-                        <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
-                        <option value="Rare" className="bg-zinc-950">Rare</option>
-                        <option value="Legendary" className="bg-zinc-950">Legendary</option>
-                      </select>
-
-                      <span className="text-[10px] font-mono uppercase px-2 py-1 rounded bg-white/[0.04] text-zinc-400 border border-white/[0.06] shrink-0">
-                        {offer.type}
-                      </span>
-                    </div>
+                  {/* Rarity & Type */}
+                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1">
+                    <select
+                      value={offer.rarity}
+                      onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
+                      className="bg-transparent text-zinc-400 hover:text-zinc-200 cursor-pointer focus:outline-none text-[11px]"
+                    >
+                      <option value="Common" className="bg-zinc-950">Common</option>
+                      <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
+                      <option value="Rare" className="bg-zinc-950">Rare</option>
+                      <option value="Legendary" className="bg-zinc-950">Legendary</option>
+                    </select>
+                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                      {offer.type}
+                    </span>
                   </div>
                 </div>
 
-                {/* Slot Status / Score */}
-                <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                {/* Mathematical Delta Preview */}
+                <div className="pt-4">
                   {isWinner ? (
-                    <span className="text-amber-400 font-semibold text-[11px] flex items-center gap-1">
-                      ★ Best Pick
-                    </span>
+                    <div className="text-emerald-400 font-mono font-bold text-sm">
+                      +{bestChoice.dpsGainPct.toFixed(1)}% Net DPS
+                    </div>
                   ) : (
-                    <span className="text-zinc-500 text-[11px]">Option #{idx + 1}</span>
-                  )}
-                  {bestChoice && isWinner ? (
-                    <span className="text-emerald-400 font-mono font-bold text-[11px]">
-                      +{bestChoice.dpsGainPct.toFixed(1)}% DPS
-                    </span>
-                  ) : (
-                    <span className="text-zinc-500 font-mono text-[11px]">
+                    <div className="text-zinc-600 font-mono text-xs">
                       {rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase())?.dpsGainPct
-                        ? `+${rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase())?.dpsGainPct.toFixed(1)}%`
+                        ? `+${rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase())?.dpsGainPct.toFixed(1)}% DPS`
                         : '—'}
-                    </span>
+                    </div>
+                  )}
+
+                  {/* Glowing gold baseline indicator for the winning choice */}
+                  {isWinner && (
+                    <div className="h-0.5 w-full bg-amber-400 shadow-md shadow-amber-400/50 rounded-full mt-2"></div>
                   )}
                 </div>
               </div>
@@ -423,174 +359,155 @@ export default function UpgradeAdvisor({
         </div>
       </div>
 
-      {/* 3. APPLE KEYNOTE RECOMMENDATION SHOWCASE */}
+      {/* 3. APPLE KEYNOTE HERO CALLOUT (BORDERLESS, TYPOGRAPHIC FOCAL POINT) */}
       {bestChoice && (
-        <div className="bg-gradient-to-b from-white/[0.05] via-white/[0.02] to-transparent border border-white/[0.09] rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden">
-          {/* Subtle warm glow background */}
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="py-8 space-y-6">
+          <div className="space-y-3">
+            <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold block">
+              Optimal Upgrade Decision
+            </span>
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-4">
+              <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">
+                {bestChoice.name}
+              </h1>
+              <span className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
+                {bestChoice.type} • {bestChoice.rarity}
+              </span>
+            </div>
+            <p className="text-base sm:text-lg text-zinc-400 max-w-3xl font-light leading-relaxed">
+              {bestChoice.bracketSaturationNote || 'Provides the highest effective multiplier across uncrowded damage brackets.'}
+            </p>
+          </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-3 max-w-xl">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                  ★ Optimal Upgrade
-                </span>
-                <span className="text-xs font-mono text-zinc-500">
-                  +{runnerUpDiffPct.toFixed(1)}% higher than #2
-                </span>
+          {/* Large Hero Metric Strip (Zero Cards, Clean Numbers) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-6 border-y border-white/[0.08] font-mono">
+            <div>
+              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Marginal DPS</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 mt-1">
+                +{bestChoice.dpsGainPct.toFixed(1)}%
               </div>
-
-              <div>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                  {bestChoice.name}
-                </h3>
-                <span className="text-xs font-mono uppercase text-zinc-400 block mt-1">
-                  {bestChoice.type} • {bestChoice.rarity}
-                </span>
-              </div>
-
-              <p className="text-sm text-zinc-300 leading-relaxed font-sans">
-                {bestChoice.bracketSaturationNote || 'Provides the highest effective multiplier across uncrowded damage brackets.'}
-              </p>
+              <div className="text-xs text-zinc-500 mt-0.5">+{bestChoice.dpsGain.toFixed(1)} dps</div>
             </div>
 
-            {/* Metrics & Action Column */}
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:items-end">
-              {/* Stat Pillars */}
-              <div className="grid grid-cols-4 gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center font-mono">
-                <div>
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">DPS</div>
-                  <div className="text-base font-bold text-emerald-400">
-                    +{bestChoice.dpsGainPct.toFixed(1)}%
-                  </div>
-                </div>
-                <div className="border-l border-white/[0.06]">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">EHP</div>
-                  <div className="text-base font-bold text-cyan-400">
-                    +{bestChoice.ehpGainPct.toFixed(1)}%
-                  </div>
-                </div>
-                <div className="border-l border-white/[0.06]">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Synergy</div>
-                  <div className="text-base font-bold text-purple-400">
-                    {bestChoice.affectedWeaponsCount}/{buildState.weapons.length}
-                  </div>
-                </div>
-                <div className="border-l border-white/[0.06]">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Score</div>
-                  <div className="text-base font-bold text-amber-400">
-                    {bestChoice.compositeScore.toFixed(0)}
-                  </div>
-                </div>
+            <div>
+              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Survival EHP</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 mt-1">
+                +{bestChoice.ehpGainPct.toFixed(1)}%
               </div>
-
-              {/* Big Apple CTA */}
-              <button
-                onClick={() => onApplyUpgrade(bestChoice)}
-                className="w-full sm:w-auto px-8 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold rounded-full text-sm transition-all shadow-lg shadow-amber-400/20 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Equip Upgrade ({bestChoice.name})</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="text-xs text-zinc-500 mt-0.5">+{bestChoice.ehpGain.toFixed(0)} hp</div>
             </div>
+
+            <div>
+              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Weapons Scaled</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-purple-400 mt-1">
+                {bestChoice.affectedWeaponsCount} / {buildState.weapons.length}
+              </div>
+              <div className="text-xs text-zinc-500 mt-0.5">active arsenal</div>
+            </div>
+
+            <div>
+              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Synergy Score</div>
+              <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 mt-1">
+                {bestChoice.compositeScore.toFixed(0)}
+              </div>
+              <div className="text-xs text-zinc-500 mt-0.5">+{runnerUpDiffPct.toFixed(1)}% over #2</div>
+            </div>
+          </div>
+
+          {/* Action Row */}
+          <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-4">
+            <button
+              onClick={() => onApplyUpgrade(bestChoice)}
+              className="px-8 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-full text-sm transition-all shadow-xl shadow-amber-400/20 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Equip {bestChoice.name} in Loadout</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-zinc-500 font-mono">
+              Instantly applies to your live build stats and equips into simulator.
+            </span>
           </div>
         </div>
       )}
 
-      {/* 4. RANKED COMPARISON TABLE */}
-      <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6">
-        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-amber-400" />
-          Offered Choices Ranking
+      {/* 4. SPEC SHEET: COMPARISON RANKING (BORDERLESS LIST) */}
+      <div className="space-y-4 pt-4">
+        <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
+          Full Roll Comparison Breakdown
         </h3>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-white/[0.06] text-zinc-500 font-mono uppercase text-[11px]">
-                <th className="pb-3 px-3">#</th>
-                <th className="pb-3 px-3">Upgrade</th>
-                <th className="pb-3 px-3">Type</th>
-                <th className="pb-3 px-3">DPS Gain</th>
-                <th className="pb-3 px-3">EHP Gain</th>
-                <th className="pb-3 px-3">Synergy</th>
-                <th className="pb-3 px-3">Score</th>
-                <th className="pb-3 px-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04] font-mono">
-              {rankedOffers.map((offer, idx) => {
-                const isBest = idx === 0;
-                return (
-                  <tr
-                    key={offer.name + idx}
-                    className={`transition-colors ${
-                      isBest ? 'bg-amber-400/[0.04] text-amber-300 font-medium' : 'text-zinc-300 hover:bg-white/[0.02]'
-                    }`}
-                  >
-                    <td className="py-3 px-3 text-zinc-500 font-bold">{idx + 1}</td>
-                    <td className="py-3 px-3 font-sans font-semibold text-white flex items-center gap-2">
-                      {offer.name}
+        <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+          {rankedOffers.map((offer, idx) => {
+            const isBest = idx === 0;
+            return (
+              <div
+                key={offer.name + idx}
+                className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                  isBest ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
+                  <div>
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                      <span className={isBest ? 'text-amber-400' : 'text-zinc-200'}>{offer.name}</span>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase px-1.5 py-0.5 rounded bg-white/[0.04]">
+                        {offer.type}
+                      </span>
                       {isBest && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-400/15 text-amber-400 font-bold">
-                          BEST
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 font-bold">
+                          RECOMMENDED
                         </span>
                       )}
-                    </td>
-                    <td className="py-3 px-3 text-zinc-500 uppercase text-[11px]">{offer.type}</td>
-                    <td className="py-3 px-3 text-emerald-400">+{offer.dpsGainPct.toFixed(1)}%</td>
-                    <td className="py-3 px-3 text-cyan-400">+{offer.ehpGainPct.toFixed(1)}%</td>
-                    <td className="py-3 px-3 text-purple-400">{offer.affectedWeaponsCount} scaled</td>
-                    <td className="py-3 px-3 font-bold text-amber-400">{offer.compositeScore.toFixed(1)}</td>
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => onApplyUpgrade(offer)}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                          isBest
-                            ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
-                            : 'bg-white/[0.05] hover:bg-white/[0.1] text-zinc-200'
-                        }`}
-                      >
-                        Equip
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 font-mono text-xs">
+                  <span className="text-emerald-400 font-semibold">+{offer.dpsGainPct.toFixed(1)}% DPS</span>
+                  <span className="text-cyan-400">+{offer.ehpGainPct.toFixed(1)}% EHP</span>
+                  <span className="text-zinc-400">{offer.affectedWeaponsCount} scaled</span>
+                  <span className="text-amber-400 font-bold">{offer.compositeScore.toFixed(0)} pts</span>
+                  <button
+                    onClick={() => onApplyUpgrade(offer)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                      isBest
+                        ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                        : 'bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300'
+                    }`}
+                  >
+                    Equip
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* 5. FORMULA PROOF ACCORDION */}
       {showMathDetails && (
-        <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-            <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2 uppercase tracking-wider">
-              <Calculator className="w-4 h-4 text-amber-400" />
-              Mathematical Proof & 8-Bracket Formulation
-            </h4>
-            <span className="text-xs font-mono text-zinc-500">Megabonk Multiplicative Engine</span>
+        <div className="py-6 space-y-4 border-t border-white/[0.08] font-mono text-xs">
+          <div className="flex items-center justify-between text-zinc-500 uppercase tracking-widest text-[11px]">
+            <span>Megabonk 8-Bracket Multiplicative Formulation</span>
           </div>
 
-          <div className="text-xs text-zinc-300 space-y-3 font-mono leading-relaxed">
-            <p>
-              In Megabonk, damage does <strong className="text-white">NOT</strong> sum into a single pool. Upgrades are divided into <strong className="text-amber-400">8 independent brackets</strong> that multiply together:
-            </p>
+          <p className="text-zinc-400 leading-relaxed font-sans">
+            Megabonk does <strong className="text-white">not</strong> sum damage into a single additive stat pool. Bonuses across brackets multiply:
+          </p>
 
-            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-amber-300 font-bold text-center text-xs overflow-x-auto">
-              Final Damage = Base × B1 (Damage Tome) × B2 (Passive) × B3 (Flat Items) × B4 (Main %) × B5 (Speed) × B6 (AtkSpd) × B7 (Crit) × B8 (AoE/Proj)
+          <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl text-amber-300 font-bold text-center text-xs overflow-x-auto">
+            Final Damage = Base × B1 (Damage Tome) × B2 (Passive) × B3 (Flat) × B4 (Main %) × B5 (Speed) × B6 (AtkSpd) × B7 (Crit) × B8 (AoE/Proj)
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-zinc-400 text-[11px] pt-2">
+            <div>
+              <strong className="text-zinc-200 block mb-1">Diminishing Returns:</strong>
+              Statically stacking an already heavy bracket yields lower relative gain than distributing bonuses into uncrowded brackets.
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-[11px]">
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <strong className="text-white block mb-1">Diminishing Returns:</strong>
-                Adding +50% into a saturated bracket provides marginal utility. Adding +50% into a fresh uncrowded bracket yields full multiplicative value.
-              </div>
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <strong className="text-white block mb-1">Overcrit Probability:</strong>
-                Crit chance above 100% rolls for Tier 2 Megacrits (e.g., 140% crit = 100% Tier 1 + 40% Tier 2).
-              </div>
+            <div>
+              <strong className="text-zinc-200 block mb-1">Overcrit Probability:</strong>
+              Crit chance &gt; 100% guarantees Tier 1 crits and begins rolling for Tier 2 Megacrits.
             </div>
           </div>
         </div>
