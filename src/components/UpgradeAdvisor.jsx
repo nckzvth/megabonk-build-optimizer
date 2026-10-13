@@ -1,30 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import {
   Sparkles,
-  Trophy,
   Dices,
   Info,
-  Shield,
-  Swords,
-  Zap,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle2,
   Trash2,
   Plus,
   Calculator,
-  Crosshair,
-  User,
-  Sliders,
   ChevronDown,
   ChevronUp,
-  Flame,
-  ArrowRight,
   Package
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { rankOfferedUpgrades } from '../engine/optimizer.js';
-import { characters, weapons, tomes, items, characterMap, itemMap } from '../data/megabonkData.js';
+import { characters, weapons, tomes, items } from '../data/megabonkData.js';
+import { getCharacterPortrait, getWeaponIcon, getTomeIcon, getItemIcon } from '../data/gameUiIcons.js';
 import SearchableSelect from './SearchableSelect.jsx';
 
 export default function UpgradeAdvisor({
@@ -43,7 +32,7 @@ export default function UpgradeAdvisor({
   buildState,
   onApplyUpgrade
 }) {
-  // Advisor Mode: 'level_up' (4 mixed offers, default) vs 'item_event' (up to 3 items)
+  // Advisor Mode: 'level_up' (4 mixed offers, default FIRST) vs 'item_event' (up to 3 items)
   const [advisorMode, setAdvisorMode] = useState('level_up');
 
   // Item Event Offers (up to 3 event choices)
@@ -64,7 +53,6 @@ export default function UpgradeAdvisor({
   const activePurpose = purpose || 'leaderboard';
   const [showMathDetails, setShowMathDetails] = useState(false);
   const [showSyncInfo, setShowSyncInfo] = useState(false);
-  const [showLoadoutDrawer, setShowLoadoutDrawer] = useState(false);
 
   // Pure Items pool for Item Event mode (all 78 items)
   const itemChoices = useMemo(() => {
@@ -106,10 +94,8 @@ export default function UpgradeAdvisor({
     ];
   }, []);
 
-  // Current active offers depending on mode
   const activeOffers = advisorMode === 'item_event' ? itemOffers : levelUpOffers;
 
-  // Character options for searchable character picker
   const characterOptions = useMemo(() => {
     return characters.map(c => ({
       name: c.name,
@@ -119,19 +105,16 @@ export default function UpgradeAdvisor({
     }));
   }, []);
 
-  // Run mathematical evaluation for the current build category / purpose
   const evaluationResult = useMemo(() => {
     return rankOfferedUpgrades(buildState, activeOffers.filter(o => o.name), activePurpose);
   }, [buildState, activeOffers, activePurpose]);
 
-  const { rankedOffers, bestChoice, runnerUpDiffPct, rerollAdvice } = evaluationResult;
+  const { rankedOffers, bestChoice, runnerUpDiffPct } = evaluationResult;
 
-  // Handle Character Change: Delegate to app-level handler which auto-equips starter weapon and cleans duplicates
   const handleCharacterChange = (newCharName) => {
     setCharacter(newCharName);
   };
 
-  // Quick Roll Random Offers
   const rollRandomOffers = () => {
     if (advisorMode === 'item_event') {
       const pool = [...itemChoices];
@@ -161,7 +144,6 @@ export default function UpgradeAdvisor({
     });
   };
 
-  // Update offer name/rarity in the active mode
   const handleOfferNameChange = (index, newName, optObj) => {
     if (advisorMode === 'item_event') {
       const updated = [...itemOffers];
@@ -238,300 +220,319 @@ export default function UpgradeAdvisor({
     { id: 'speed_farming', label: '⚡ Economy Farm', desc: 'Favors Gold & Silver meta farming' },
   ];
 
-  return (
-    <div className="space-y-12 max-w-6xl mx-auto py-4">
-      {/* 1. RUN SETUP RIBBON (BORDERLESS, TYPOGRAPHIC) */}
-      <div className="pb-8 border-b border-white/[0.08] flex flex-col md:flex-row md:items-end justify-between gap-8">
-        {/* Hero Character */}
-        <div className="space-y-1.5 md:w-1/3">
-          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-zinc-500">
-            <span>Hero Character</span>
-            <button
-              onClick={() => setShowSyncInfo(!showSyncInfo)}
-              className="text-[11px] text-zinc-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <Info className="w-3 h-3" /> Steam sync?
-            </button>
-          </div>
-          <SearchableSelect
-            options={characterOptions}
-            value={character}
-            onChange={(val) => handleCharacterChange(val)}
-            placeholder="Select hero..."
-            categoryFilterEnabled={false}
-            variant="inline"
-          />
-          <div className="text-xs text-zinc-400 pt-1 font-sans">
-            <span className="text-amber-400 font-medium">Passive:</span> {buildState?.character?.passive}
-          </div>
-        </div>
+  const heroPortrait = getCharacterPortrait(character);
+  const starterWeapon = buildState?.character?.startingWeapon || 'Weapon';
 
-        {/* Level Slider with Singular Steppers */}
-        <div className="space-y-2 md:w-1/3">
-          <div className="flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-zinc-500">
-            <span>Level Progression</span>
-            <div className="flex items-center gap-1.5 font-mono">
-              <button
-                type="button"
-                onClick={() => setLevel(Math.max(1, level - 1))}
-                disabled={level <= 1}
-                className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                title="Level Down (-1)"
-                aria-label="Level Down (-1)"
-              >
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-amber-400 font-bold font-sans text-sm min-w-12 text-center">
-                Lv. {level}
-              </span>
-              <button
-                type="button"
-                onClick={() => setLevel(Math.min(100, level + 1))}
-                disabled={level >= 100}
-                className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                title="Level Up (+1)"
-                aria-label="Level Up (+1)"
-              >
-                <ChevronUp className="w-3.5 h-3.5" />
-              </button>
+  const getOfferIcon = (offer) => {
+    if (!offer) return '🎲';
+    const t = offer.type?.toLowerCase();
+    if (t === 'weapon') return getWeaponIcon(offer.name);
+    if (t === 'tome') return getTomeIcon(offer.name);
+    return getItemIcon(offer.name);
+  };
+
+  return (
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* 1. MEGABONK CHARACTER & RUN INSPECTOR BAR (Matches Screenshot 1 Megachad Header) */}
+      <div className="mb-window p-4">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+          {/* Hero Portrait + Name + Rank Bar (Cols 1-5) */}
+          <div className="md:col-span-5 flex items-start gap-3.5">
+            <div className="w-16 h-16 mb-slot-blue mb-reticle flex items-center justify-center text-3xl shrink-0">
+              {heroPortrait.emoji}
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs uppercase tracking-wider text-[#ffe600] font-bold">
+                  ACTIVE CHARACTER
+                </span>
+                <button
+                  onClick={() => setShowSyncInfo(!showSyncInfo)}
+                  className="text-xs text-zinc-300 hover:text-[#ffe600] flex items-center gap-1 cursor-pointer"
+                >
+                  <Info className="w-3.5 h-3.5" /> Steam sync?
+                </button>
+              </div>
+              <SearchableSelect
+                options={characterOptions}
+                value={character}
+                onChange={(val) => handleCharacterChange(val)}
+                placeholder="Select hero..."
+                categoryFilterEnabled={false}
+              />
+              {/* Starter Weapon & Passive Tag (Aura / Flex style) */}
+              <div className="flex items-center gap-3 pt-1 text-xs">
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-4 mb-slot-blue inline-flex items-center justify-center text-[10px]">
+                    {getWeaponIcon(starterWeapon)}
+                  </span>
+                  <span className="text-[#ffe600] font-bold">{starterWeapon}</span>
+                </span>
+                <span className="text-zinc-500">•</span>
+                <span className="text-white truncate" title={buildState?.character?.passive}>
+                  {buildState?.character?.passive}
+                </span>
+              </div>
             </div>
           </div>
-          <input
-            type="range"
-            min="1"
-            max="100"
-            value={level}
-            onChange={(e) => setLevel(parseInt(e.target.value))}
-            className="w-full accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
-          />
-          <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-            <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1 (Start)</button>
-            <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25 (Mid)</button>
-            <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50 (Boss)</button>
-            <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
+
+          {/* Rank / Level Progression Bar with Singular Steppers (Cols 6-9) */}
+          <div className="md:col-span-4 space-y-1.5 md:border-x-2 border-[#3c4148] md:px-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-4 rounded-sm bg-slate-300 text-slate-950 font-black text-[10px] flex items-center justify-center border border-black">
+                  ❖
+                </span>
+                <span className="text-white font-bold text-sm">Rank / Level {level}</span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setLevel(Math.max(1, level - 1))}
+                  disabled={level <= 1}
+                  className="mb-btn-stone w-6 h-6 flex items-center justify-center disabled:opacity-30"
+                  title="Level Down (-1)"
+                  aria-label="Level Down (-1)"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                <span className="text-[#ffe600] font-bold font-mono text-xs px-1.5">
+                  Lv.{level}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setLevel(Math.min(100, level + 1))}
+                  disabled={level >= 100}
+                  className="mb-btn-stone w-6 h-6 flex items-center justify-center disabled:opacity-30"
+                  title="Level Up (+1)"
+                  aria-label="Level Up (+1)"
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Cyan-Blue XP Progress Bar (Matches 'Rank 38' bar in Screenshot 1) */}
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={level}
+              onChange={(e) => setLevel(parseInt(e.target.value))}
+              className="w-full mb-slider"
+            />
+
+            <div className="flex justify-between text-[11px] text-zinc-300 font-mono">
+              <button onClick={() => setLevel(1)} className="hover:text-[#ffe600] cursor-pointer">Lv.1</button>
+              <button onClick={() => setLevel(25)} className="hover:text-[#ffe600] cursor-pointer">Lv.25</button>
+              <button onClick={() => setLevel(50)} className="hover:text-[#ffe600] cursor-pointer">Lv.50</button>
+              <button onClick={() => setLevel(100)} className="hover:text-[#ffe600] cursor-pointer">Lv.100</button>
+            </div>
+          </div>
+
+          {/* Strategic Run Purpose (Cols 10-12) */}
+          <div className="md:col-span-3 space-y-1">
+            <label className="text-xs uppercase tracking-wider text-[#ffe600] font-bold block">
+              RUN PURPOSE / GOAL
+            </label>
+            <select
+              value={activePurpose}
+              onChange={(e) => setPurpose && setPurpose(e.target.value)}
+              className="w-full mb-input px-2.5 py-1.5 text-sm text-white font-bold focus:outline-none cursor-pointer"
+            >
+              {objectives.map((obj) => (
+                <option key={obj.id} value={obj.id} className="bg-[#1c1e22] text-white">
+                  {obj.label}
+                </option>
+              ))}
+            </select>
+            <div className="text-xs text-zinc-300 truncate">
+              {objectives.find(o => o.id === activePurpose)?.desc}
+            </div>
           </div>
         </div>
 
-        {/* Strategic Purpose */}
-        <div className="space-y-1.5 md:w-1/4">
-          <label className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block">
-            Run Goal
-          </label>
-          <select
-            value={activePurpose}
-            onChange={(e) => setPurpose && setPurpose(e.target.value)}
-            className="w-full bg-transparent border-b border-zinc-800 hover:border-zinc-500 py-2 text-sm text-amber-300 font-semibold focus:outline-none cursor-pointer transition-colors"
-          >
-            {objectives.map((obj) => (
-              <option key={obj.id} value={obj.id} className="bg-zinc-950 text-zinc-200">
-                {obj.label}
-              </option>
-            ))}
-          </select>
-          <div className="text-[11px] text-zinc-500 truncate font-sans">
-            {objectives.find(o => o.id === activePurpose)?.desc}
+        {showSyncInfo && (
+          <div className="mt-3 pt-3 border-t border-[#454a52] text-xs text-zinc-200">
+            <span className="text-[#ffe600] font-bold">NOTE:</span> Megabonk runs locally on Steam without an external live telemetry socket. Select your in-game offerings below for instant 8-bracket calculation.
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Sync Info Modal Note */}
-      {showSyncInfo && (
-        <div className="p-4 border-l-2 border-amber-400 bg-amber-400/[0.02] text-xs text-zinc-400 font-sans leading-relaxed">
-          *Megabonk* runs locally as a native Steam executable without a browser API. To optimize on the fly, type your 4 level-up rolls into the slots below to get the instantaneous mathematical answer.
-        </div>
-      )}
-
-      {/* 2. THE INTERACTIVE STAGE: ZERO LAYOUT SHIFT ARCHITECTURAL GRID */}
-      <div>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
-          <div className="space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-500 block">
-              Interactive Advisor Stage
+      {/* 2. THE INTERACTIVE ROLL STAGE WINDOW (ZERO LAYOUT SHIFT 4-COLUMN GRID) */}
+      <div className="mb-window">
+        {/* Authentic Pine-Green Window Title Header */}
+        <div className="mb-window-header flex-wrap">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-white">
+              {advisorMode === 'level_up' ? 'LEVEL-UP PROGRESSION ROLL' : 'ITEM EVENT SELECTION (CHEST / SHRINE)'}
+            </h2>
+            <span className="text-xs font-mono text-[#ffe600] font-bold">
+              [{advisorMode === 'level_up' ? '4 UPGRADE SLOTS' : `${activeOffers.length} OF 3 ITEM CHOICES`}]
             </span>
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold tracking-tight text-white">
-                {advisorMode === 'level_up' ? 'Level-Up Progression Roll' : 'Item Event Selection'}
-              </h2>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20">
-                {advisorMode === 'level_up' ? '4 Upgrade Slots' : `${activeOffers.length} of 3 Item Choices`}
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 font-sans">
-              {advisorMode === 'level_up'
-                ? 'Evaluate 4 mixed upgrade offerings across Weapons, Tomes & Items.'
-                : `Compare up to 3 event drops across Chests, Bosses & Shrines calibrated to ${objectives.find(o => o.id === activePurpose)?.label}.`}
-            </p>
           </div>
 
-          {/* Mode Switcher + Controls (Fixed dimensions, zero wrap) */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            {/* Apple Segmented Control - Level-Up FIRST, Item Event SECOND */}
-            <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setAdvisorMode('level_up')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  advisorMode === 'level_up'
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Level-Up Roll</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdvisorMode('item_event')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  advisorMode === 'item_event'
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <Package className="w-3.5 h-3.5" />
-                <span>Item Event (Up to 3)</span>
-              </button>
-            </div>
-
-            {/* Quick Simulate / Roll */}
+          {/* Mode Switcher + Roll Controls (Level-Up FIRST, Item Event SECOND) */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <button
-              onClick={rollRandomOffers}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
+              type="button"
+              onClick={() => setAdvisorMode('level_up')}
+              className={`px-3 py-1 text-xs uppercase flex items-center gap-1.5 ${
+                advisorMode === 'level_up'
+                  ? 'mb-btn-blue mb-reticle text-white'
+                  : 'mb-btn-stone text-zinc-200'
+              }`}
             >
-              <Dices className="w-3.5 h-3.5 text-amber-400" />
+              <Sparkles className="w-3.5 h-3.5 text-[#ffe600]" />
+              <span>Level-Up Roll</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAdvisorMode('item_event')}
+              className={`px-3 py-1 text-xs uppercase flex items-center gap-1.5 ${
+                advisorMode === 'item_event'
+                  ? 'mb-btn-blue mb-reticle text-white'
+                  : 'mb-btn-stone text-zinc-200'
+              }`}
+            >
+              <Package className="w-3.5 h-3.5 text-[#ffe600]" />
+              <span>Item Event (Up to 3)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={rollRandomOffers}
+              className="mb-btn-stone px-3 py-1 text-xs uppercase flex items-center gap-1.5"
+            >
+              <Dices className="w-3.5 h-3.5 text-[#ffe600]" />
               <span>Simulate Roll</span>
             </button>
 
-            {/* Math Proof Button */}
             <button
+              type="button"
               onClick={() => setShowMathDetails(!showMathDetails)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
+              className="mb-btn-stone px-3 py-1 text-xs uppercase flex items-center gap-1.5"
             >
-              <Calculator className="w-3.5 h-3.5 text-amber-400" />
-              <span>{showMathDetails ? 'Hide Proof' : 'Formula Proof'}</span>
+              <Calculator className="w-3.5 h-3.5 text-[#ffe600]" />
+              <span>{showMathDetails ? 'Hide Math' : 'Math Formula'}</span>
             </button>
           </div>
         </div>
 
-        {/* Stable 4-Column Architectural Grid - Zero Width or Horizontal Layout Shift */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-6 border-y border-white/[0.08]">
+        {/* Stable 4-Column Selection Grid (CLS = 0) */}
+        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {activeOffers.map((offer, idx) => {
             const isWinner = bestChoice && bestChoice.name.toLowerCase() === offer.name.toLowerCase();
             const rankedEntry = rankedOffers.find(r => r.name.toLowerCase() === offer.name.toLowerCase());
 
             return (
-              <div key={offer.id || idx} className="space-y-3 relative flex flex-col justify-between">
+              <div
+                key={offer.id || idx}
+                className={`p-3.5 flex flex-col justify-between transition-all ${
+                  isWinner
+                    ? 'bg-[#1e3252]/90 border-2 border-[#ffe600] outline-2 outline-black mb-reticle'
+                    : 'bg-[#181b1f] border-2 border-[#8e959e] outline-1 outline-black'
+                }`}
+              >
                 <div className="space-y-3">
-                  {/* Slot Number & Best Choice Tag */}
-                  <div className="flex items-center justify-between text-xs font-mono h-5">
-                    <span className="text-zinc-600 tracking-wider">
-                      {advisorMode === 'item_event' ? `ITEM 0${idx + 1}` : `SLOT 0${idx + 1}`}
+                  {/* Top Header Row: Slot Index & Best Choice Badge */}
+                  <div className="flex items-center justify-between h-5 text-xs">
+                    <span className="font-mono text-zinc-300 font-bold">
+                      {advisorMode === 'item_event' ? `CHOICE #${idx + 1}` : `SLOT #${idx + 1}`}
                     </span>
                     {isWinner ? (
-                      <span className="text-amber-400 font-sans font-bold text-[11px] uppercase tracking-wider flex items-center gap-1">
-                        ★ Best Choice
+                      <span className="text-[#ffe600] font-bold uppercase tracking-wider text-xs">
+                        ★ BEST PICK
                       </span>
                     ) : (
                       activeOffers.length > (advisorMode === 'item_event' ? 1 : 2) && (
                         <button
                           onClick={() => removeOfferSlot(idx)}
-                          className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                          className="text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
                           title="Remove slot"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )
                     )}
                   </div>
 
-                  {/* Borderless Inline Selector */}
+                  {/* Upgrade Picker */}
                   <SearchableSelect
                     options={advisorMode === 'item_event' ? itemChoices : allChoices}
                     value={offer.name}
                     onChange={(newName, optObj) => handleOfferNameChange(idx, newName, optObj)}
                     placeholder={advisorMode === 'item_event' ? 'Search 78 items...' : 'Search upgrade...'}
                     categoryFilterEnabled={advisorMode !== 'item_event'}
-                    variant="inline"
                   />
 
-                  {/* Rarity & Type */}
-                  <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 h-5">
+                  {/* Rarity & Category Row */}
+                  <div className="flex items-center justify-between text-xs pt-0.5 h-6">
                     <select
                       value={offer.rarity}
                       onChange={(e) => handleOfferRarityChange(idx, e.target.value)}
-                      className="bg-transparent text-zinc-400 hover:text-zinc-200 cursor-pointer focus:outline-none text-[11px]"
+                      className="mb-input px-2 py-0.5 text-xs text-white cursor-pointer focus:outline-none"
                     >
-                      <option value="Common" className="bg-zinc-950">Common</option>
-                      <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
-                      <option value="Rare" className="bg-zinc-950">Rare</option>
-                      <option value="Legendary" className="bg-zinc-950">Legendary</option>
+                      <option value="Common" className="bg-[#1c1e22]">Common</option>
+                      <option value="Uncommon" className="bg-[#1c1e22]">Uncommon</option>
+                      <option value="Rare" className="bg-[#1c1e22]">Rare</option>
+                      <option value="Legendary" className="bg-[#1c1e22]">Legendary</option>
                     </select>
-                    <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                    <span className="text-xs font-mono text-[#ffe600] uppercase font-bold">
                       {offer.type}
                     </span>
                   </div>
                 </div>
 
-                {/* Mathematical Delta Preview - Fixed Min Height for zero vertical shift */}
-                <div className="pt-4 min-h-[46px] flex flex-col justify-end">
-                  {isWinner ? (
-                    <div className="space-y-0.5">
-                      <div className="text-emerald-400 font-mono font-bold text-sm">
-                        {bestChoice.dpsGainPct > 0
-                          ? `+${bestChoice.dpsGainPct.toFixed(1)}% Net DPS`
-                          : (bestChoice.ehpGainPct > 0 ? `+${bestChoice.ehpGainPct.toFixed(1)}% Net EHP` : 'Top Choice')}
-                      </div>
-                      <div className="text-xs font-mono text-amber-400/80">
-                        {bestChoice.compositeScore.toFixed(0)} synergy pts
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-zinc-500 font-mono text-xs">
+                {/* Bottom Quest-Style Progress Bar & Delta Readout (Fixed Min-Height for Zero CLS) */}
+                <div className="pt-3 mt-2 border-t border-[#3b4048] min-h-[54px] flex flex-col justify-end">
+                  <div className="flex items-center justify-between text-xs font-mono mb-1">
+                    <span className={isWinner ? 'text-[#2ee619] font-bold' : 'text-zinc-200'}>
                       {rankedEntry
                         ? (rankedEntry.dpsGainPct > 0
                             ? `+${rankedEntry.dpsGainPct.toFixed(1)}% DPS`
-                            : (rankedEntry.ehpGainPct > 0 ? `+${rankedEntry.ehpGainPct.toFixed(1)}% EHP` : '—')) + ` (${rankedEntry.compositeScore.toFixed(0)} pts)`
+                            : (rankedEntry.ehpGainPct > 0 ? `+${rankedEntry.ehpGainPct.toFixed(1)}% EHP` : 'Utility'))
                         : '—'}
-                    </div>
-                  )}
-
-                  {/* Glowing gold baseline indicator (fixed height container so card height never shifts) */}
-                  <div className="h-0.5 w-full mt-2 rounded-full overflow-hidden">
-                    {isWinner ? (
-                      <div className="h-full w-full bg-amber-400 shadow-md shadow-amber-400/50"></div>
-                    ) : (
-                      <div className="h-full w-full bg-transparent"></div>
-                    )}
+                    </span>
+                    <span className="text-[#ffe600] font-bold">
+                      {rankedEntry ? `${rankedEntry.compositeScore.toFixed(0)} pts` : '0 pts'}
+                    </span>
+                  </div>
+                  <div className="mb-progress-track">
+                    <div
+                      className={isWinner ? 'mb-progress-fill-green' : 'mb-progress-fill-blue'}
+                      style={{
+                        width: `${Math.min(100, Math.max(8, ((rankedEntry?.compositeScore || 0) / Math.max(1, bestChoice?.compositeScore || 100)) * 100))}%`
+                      }}
+                    />
                   </div>
                 </div>
               </div>
             );
           })}
 
-          {/* 4th Column Placeholder in Item Event Mode: Guarantees columns 1, 2, and 3 maintain 100% identical 25% width */}
+          {/* 4th Column Placeholder in Item Event Mode (Guarantees 0 Horizontal Layout Shift) */}
           {advisorMode === 'item_event' && activeOffers.length < 4 && (
-            <div className="hidden lg:flex flex-col justify-center items-center p-6 border border-dashed border-white/[0.06] rounded-2xl text-center space-y-2 opacity-50 h-full min-h-[170px]">
+            <div className="hidden lg:flex flex-col justify-center items-center p-4 bg-[#14171b]/80 border-2 border-dashed border-[#5c626b] text-center space-y-2 min-h-[175px]">
               {activeOffers.length < 3 ? (
                 <button
                   type="button"
                   onClick={addOfferSlot}
-                  className="flex flex-col items-center gap-2 text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer group"
+                  className="mb-btn-stone px-4 py-2 text-xs uppercase flex items-center gap-1.5"
                 >
-                  <div className="w-8 h-8 rounded-full bg-white/[0.04] group-hover:bg-amber-400/10 flex items-center justify-center transition-all">
-                    <Plus className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-zinc-400 group-hover:text-amber-300">
-                    + Add 3rd Item Slot
-                  </span>
+                  <Plus className="w-4 h-4 text-[#ffe600]" />
+                  <span>+ Add 3rd Item Slot</span>
                 </button>
               ) : (
                 <>
-                  <Package className="w-5 h-5 text-zinc-600" />
-                  <div className="text-xs font-mono text-zinc-500 uppercase tracking-wider">
-                    Event Limit: 3 Choices
+                  <Package className="w-6 h-6 text-[#ffe600]" />
+                  <div className="text-xs font-bold text-[#ffe600] uppercase">
+                    EVENT CAP: 3 ITEMS
                   </div>
-                  <p className="text-[11px] text-zinc-600 font-sans max-w-[170px] leading-relaxed">
-                    Event chests, boss drops, and shrines offer a max of 3 items in Megabonk.
+                  <p className="text-xs text-zinc-300 max-w-[180px]">
+                    Chests, Bosses, and Shrines offer up to 3 choices in Megabonk.
                   </p>
                 </>
               )}
@@ -540,166 +541,177 @@ export default function UpgradeAdvisor({
         </div>
       </div>
 
-      {/* 3. APPLE KEYNOTE HERO CALLOUT (BORDERLESS, TYPOGRAPHIC FOCAL POINT) */}
+      {/* 3. SPLIT GAME PANELS: MEGACHAD-STYLE WINNER INSPECTOR (LEFT) + LEADERBOARD TABLE (RIGHT) */}
       {bestChoice && (
-        <div className="py-8 space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
-                {advisorMode === 'level_up' ? 'Optimal Upgrade Decision' : 'Optimal Event Item Decision'}
-              </span>
-              <span className="text-zinc-600 font-mono">•</span>
-              <span className="text-xs font-mono text-zinc-400">
-                Calibrated to {objectives.find(o => o.id === activePurpose)?.label}
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Panel (Cols 1-6): Winner Inspector (Matches Megachad Right Panel in Screenshot 1) */}
+          <div className="lg:col-span-6 mb-window p-5 space-y-5">
+            {/* Top Portrait + Title */}
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 mb-slot-blue mb-reticle flex items-center justify-center text-3xl shrink-0">
+                {getOfferIcon(bestChoice)}
+              </div>
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-mono uppercase px-2 py-0.5 bg-[#2471db] text-white font-bold border border-white">
+                    ★ #1 RECOMMENDED PICK
+                  </span>
+                  <span className="text-xs font-mono text-[#ffe600]">
+                    +{runnerUpDiffPct.toFixed(1)}% over #2
+                  </span>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-wide truncate">
+                  {bestChoice.name}
+                </h3>
+                <div className="text-xs font-mono text-zinc-300 uppercase">
+                  {bestChoice.type} • {bestChoice.rarity} • Score: <span className="text-[#ffe600] font-bold">{bestChoice.compositeScore.toFixed(0)} pts</span>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-baseline gap-4">
-              <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">
-                {bestChoice.name}
-              </h1>
-              <span className="text-sm font-mono text-zinc-400 uppercase tracking-wider">
-                {bestChoice.type} • {bestChoice.rarity}
-              </span>
-            </div>
-            <p className="text-base sm:text-lg text-zinc-400 max-w-3xl font-light leading-relaxed">
-              {bestChoice.bracketSaturationNote || (advisorMode === 'item_event' ? 'Offers the highest value and synergistic scaling for your active build category.' : 'Provides the highest effective multiplier across uncrowded damage brackets.')}
+
+            {/* Flavor / Bracket Explanation */}
+            <p className="text-sm text-white leading-relaxed border-y border-[#3d424a] py-3">
+              {bestChoice.bracketSaturationNote || 'Provides the highest effective multiplicative gain across your active damage and survival brackets.'}
             </p>
+
+            {/* Aura / Flex Style Stat Breakdown Rows */}
+            <div className="space-y-3">
+              {/* Offense / DPS Row */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 mb-slot-blue flex items-center justify-center text-xl shrink-0">
+                  ⚔️
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#ffe600] font-bold text-sm">Marginal Damage Output</span>
+                    <span className="text-[#2ee619] font-mono font-bold text-sm">
+                      +{bestChoice.dpsGainPct.toFixed(1)}% DPS (+{bestChoice.dpsGain.toFixed(1)})
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-200">
+                    Scales {bestChoice.affectedWeaponsCount} of {buildState.weapons.length} equipped weapons in your arsenal.
+                  </p>
+                </div>
+              </div>
+
+              {/* Defense / EHP Row */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 mb-slot-red flex items-center justify-center text-xl shrink-0">
+                  🛡️
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#ffe600] font-bold text-sm">Survivability & EHP</span>
+                    <span className="text-[#38bdf8] font-mono font-bold text-sm">
+                      +{bestChoice.ehpGainPct.toFixed(1)}% EHP (+{bestChoice.ehpGain.toFixed(0)} HP)
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-200">
+                    Calibrated for {objectives.find(o => o.id === activePurpose)?.label}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Authentic Chunky 3D Royal Blue CONFIRM Button (Exact match to Screenshot 1) */}
+            <div className="pt-2 flex justify-center">
+              <button
+                onClick={() => onApplyUpgrade(bestChoice)}
+                className="mb-btn-blue px-10 py-2.5 text-base sm:text-lg uppercase tracking-wider w-full sm:w-auto min-w-[220px]"
+              >
+                CONFIRM & EQUIP ({bestChoice.name})
+              </button>
+            </div>
           </div>
 
-          {/* Large Hero Metric Strip (Zero Cards, Clean Numbers) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-6 border-y border-white/[0.08] font-mono">
-            <div>
-              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Marginal DPS</div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-emerald-400 mt-1">
-                +{bestChoice.dpsGainPct.toFixed(1)}%
-              </div>
-              <div className="text-xs text-zinc-500 mt-0.5">+{bestChoice.dpsGain.toFixed(1)} dps</div>
+          {/* Right Panel (Cols 7-12): Authentic LEADERBOARDS-Style Comparison Window */}
+          <div className="lg:col-span-6 mb-window">
+            <div className="mb-window-header">
+              <h3 className="text-lg font-bold uppercase tracking-wider text-white">
+                OFFERINGS LEADERBOARD
+              </h3>
+              <span className="text-xs font-mono text-[#ffe600] font-bold">
+                Goal: {objectives.find(o => o.id === activePurpose)?.label}
+              </span>
             </div>
 
-            <div>
-              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Survival EHP</div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-cyan-400 mt-1">
-                +{bestChoice.ehpGainPct.toFixed(1)}%
-              </div>
-              <div className="text-xs text-zinc-500 mt-0.5">+{bestChoice.ehpGain.toFixed(0)} hp</div>
+            {/* Table Column Headers (RANK | UPGRADE | DPS / EHP | SCORE) */}
+            <div className="grid grid-cols-12 px-4 py-2 bg-[#141619] border-b border-[#3a3f46] text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <div className="col-span-2">RANK</div>
+              <div className="col-span-5">UPGRADE</div>
+              <div className="col-span-3 text-right">GAIN</div>
+              <div className="col-span-2 text-right">SCORE</div>
             </div>
 
-            <div>
-              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Weapons Scaled</div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-purple-400 mt-1">
-                {bestChoice.affectedWeaponsCount} / {buildState.weapons.length}
-              </div>
-              <div className="text-xs text-zinc-500 mt-0.5">active arsenal</div>
+            {/* Alternating Striped Rows (Matches Screenshot 2 LEADERBOARDS) */}
+            <div className="divide-y divide-[#2c3036]">
+              {rankedOffers.map((offer, idx) => {
+                const isBest = idx === 0;
+                return (
+                  <div
+                    key={offer.name + idx}
+                    className={`grid grid-cols-12 items-center px-4 py-3 text-sm ${
+                      isBest
+                        ? 'mb-row-highlight'
+                        : idx % 2 === 0
+                        ? 'mb-row-odd'
+                        : 'mb-row-even'
+                    }`}
+                  >
+                    <div className="col-span-2 font-bold text-white font-mono">
+                      #{idx + 1}
+                    </div>
+                    <div className="col-span-5 flex items-center gap-2 min-w-0 pr-2">
+                      <span className="w-6 h-6 mb-slot flex items-center justify-center text-xs shrink-0">
+                        {getOfferIcon(offer)}
+                      </span>
+                      <div className="truncate">
+                        <span className={`font-bold ${isBest ? 'text-[#ffe600]' : 'text-white'}`}>
+                          {offer.name}
+                        </span>
+                        <span className="block text-[10px] font-mono text-zinc-400 uppercase">
+                          {offer.type} • {offer.affectedWeaponsCount}W scaled
+                        </span>
+                      </div>
+                    </div>
+                    <div className="col-span-3 text-right font-mono text-xs">
+                      <div className="text-[#2ee619] font-bold">+{offer.dpsGainPct.toFixed(1)}% DPS</div>
+                      <div className="text-[#38bdf8]">+{offer.ehpGainPct.toFixed(1)}% EHP</div>
+                    </div>
+                    <div className="col-span-2 text-right flex flex-col items-end gap-1">
+                      <span className="text-[#ffe600] font-bold font-mono">
+                        {offer.compositeScore.toFixed(0)}
+                      </span>
+                      <button
+                        onClick={() => onApplyUpgrade(offer)}
+                        className="mb-btn-stone px-2 py-0.5 text-[10px] uppercase"
+                      >
+                        Equip
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            <div>
-              <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Synergy Score</div>
-              <div className="text-3xl sm:text-4xl font-extrabold text-amber-400 mt-1">
-                {bestChoice.compositeScore.toFixed(0)}
-              </div>
-              <div className="text-xs text-zinc-500 mt-0.5">+{runnerUpDiffPct.toFixed(1)}% over #2</div>
-            </div>
-          </div>
-
-          {/* Action Row */}
-          <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-4">
-            <button
-              onClick={() => onApplyUpgrade(bestChoice)}
-              className="px-8 py-3.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-full text-sm transition-all shadow-xl shadow-amber-400/20 cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>{advisorMode === 'level_up' ? `Equip ${bestChoice.name} in Loadout` : `Equip ${bestChoice.name} into Inventory`}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <span className="text-xs text-zinc-500 font-mono">
-              Instantly applies to your live build stats and equips into simulator.
-            </span>
           </div>
         </div>
       )}
 
-      {/* 4. SPEC SHEET: COMPARISON RANKING (BORDERLESS LIST) */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-            {advisorMode === 'level_up' ? 'Full Roll Comparison Breakdown' : 'Item Event Options Ranked'}
-          </h3>
-          <span className="text-[11px] font-mono text-zinc-500">
-            Ranked for {objectives.find(o => o.id === activePurpose)?.label}
-          </span>
-        </div>
-
-        <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
-          {rankedOffers.map((offer, idx) => {
-            const isBest = idx === 0;
-            return (
-              <div
-                key={offer.name + idx}
-                className={`py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                  isBest ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
-                  <div>
-                    <div className="flex items-center gap-2 font-bold text-sm">
-                      <span className={isBest ? 'text-amber-400' : 'text-zinc-200'}>{offer.name}</span>
-                      <span className="text-[10px] font-mono text-zinc-500 uppercase px-1.5 py-0.5 rounded bg-white/[0.04]">
-                        {offer.type}
-                      </span>
-                      {isBest && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-400 font-bold">
-                          RECOMMENDED
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6 font-mono text-xs">
-                  <span className="text-emerald-400 font-semibold">+{offer.dpsGainPct.toFixed(1)}% DPS</span>
-                  <span className="text-cyan-400">+{offer.ehpGainPct.toFixed(1)}% EHP</span>
-                  <span className="text-zinc-400">{offer.affectedWeaponsCount} scaled</span>
-                  <span className="text-amber-400 font-bold">{offer.compositeScore.toFixed(0)} pts</span>
-                  <button
-                    onClick={() => onApplyUpgrade(offer)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                      isBest
-                        ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
-                        : 'bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300'
-                    }`}
-                  >
-                    Equip
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 5. FORMULA PROOF ACCORDION */}
+      {/* 4. FORMULA PROOF WINDOW */}
       {showMathDetails && (
-        <div className="py-6 space-y-4 border-t border-white/[0.08] font-mono text-xs">
-          <div className="flex items-center justify-between text-zinc-500 uppercase tracking-widest text-[11px]">
-            <span>Megabonk 8-Bracket Multiplicative Formulation</span>
+        <div className="mb-window">
+          <div className="mb-window-header">
+            <h3 className="text-base font-bold uppercase tracking-wider text-white">
+              MEGABONK 8-BRACKET MULTIPLICATIVE DAMAGE ENGINE
+            </h3>
+            <span className="text-xs font-mono text-[#ffe600]">VERIFIED FORMULA</span>
           </div>
-
-          <p className="text-zinc-400 leading-relaxed font-sans">
-            Megabonk does <strong className="text-white">not</strong> sum damage into a single additive stat pool. Bonuses across brackets multiply:
-          </p>
-
-          <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl text-amber-300 font-bold text-center text-xs overflow-x-auto">
-            Final Damage = Base × B1 (Damage Tome) × B2 (Passive) × B3 (Flat) × B4 (Main %) × B5 (Speed) × B6 (AtkSpd) × B7 (Crit) × B8 (AoE/Proj)
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-zinc-400 text-[11px] pt-2">
-            <div>
-              <strong className="text-zinc-200 block mb-1">Diminishing Returns:</strong>
-              Statically stacking an already heavy bracket yields lower relative gain than distributing bonuses into uncrowded brackets.
-            </div>
-            <div>
-              <strong className="text-zinc-200 block mb-1">Overcrit Probability:</strong>
-              Crit chance &gt; 100% guarantees Tier 1 crits and begins rolling for Tier 2 Megacrits.
+          <div className="p-4 space-y-3 text-xs">
+            <p className="text-white">
+              Megabonk multiplies damage across 8 independent brackets rather than adding all percentages into one pool:
+            </p>
+            <div className="p-3 bg-[#121417] border-2 border-[#6c727a] text-[#ffe600] font-mono font-bold text-center">
+              Final Damage = Base × B1 (Damage Tome) × B2 (Passive) × B3 (Flat) × B4 (Main %) × B5 (Speed) × B6 (AtkSpd) × B7 (Crit/Overcrit) × B8 (AoE/Proj)
             </div>
           </div>
         </div>

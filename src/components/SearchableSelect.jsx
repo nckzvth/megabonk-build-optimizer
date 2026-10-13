@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, Check, X, Swords, BookOpen, Package, User } from 'lucide-react';
+import { Search, ChevronDown, Check, X } from 'lucide-react';
+import { getCharacterPortrait, getWeaponIcon, getTomeIcon, getItemIcon } from '../data/gameUiIcons.js';
 
 export default function SearchableSelect({
   options = [],
@@ -9,8 +10,7 @@ export default function SearchableSelect({
   categoryFilterEnabled = true,
   className = '',
   size = 'md',
-  showDescription = true,
-  variant = 'default'
+  showDescription = true
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -21,12 +21,10 @@ export default function SearchableSelect({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Find currently selected option
   const selectedOption = useMemo(() => {
     return options.find(o => o.name?.toLowerCase() === value?.toLowerCase()) || null;
   }, [options, value]);
 
-  // Filter options based on search query and category tab
   const filteredOptions = useMemo(() => {
     let result = options;
 
@@ -48,7 +46,6 @@ export default function SearchableSelect({
     return result;
   }, [options, search, activeTab, categoryFilterEnabled]);
 
-  // Click outside listener
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -59,12 +56,10 @@ export default function SearchableSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlight index when filtered results change
   useEffect(() => {
     setHighlightedIndex(0);
   }, [filteredOptions]);
 
-  // Focus search input on open
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -75,7 +70,6 @@ export default function SearchableSelect({
     }
   }, [isOpen]);
 
-  // Keyboard navigation
   const handleKeyDown = (e) => {
     if (!isOpen) {
       if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === ' ') {
@@ -107,110 +101,93 @@ export default function SearchableSelect({
     setIsOpen(false);
   };
 
-  const getRarityBadgeClass = (rarity) => {
-    switch (rarity) {
-      case 'Legendary': return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
-      case 'Rare': return 'text-purple-400 bg-purple-500/10 border-purple-500/30';
-      case 'Uncommon': return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-      default: return 'text-slate-400 bg-slate-800/40 border-slate-700/40';
-    }
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'weapon': return <Swords className="w-3.5 h-3.5 text-orange-400" />;
-      case 'tome': return <BookOpen className="w-3.5 h-3.5 text-amber-400" />;
-      case 'item': return <Package className="w-3.5 h-3.5 text-purple-400" />;
-      case 'character': return <User className="w-3.5 h-3.5 text-cyan-400" />;
-      default: return null;
-    }
+  const getOptionEmoji = (opt) => {
+    if (!opt) return '🎲';
+    const t = opt.type?.toLowerCase();
+    if (t === 'character') return getCharacterPortrait(opt.name).emoji;
+    if (t === 'weapon') return getWeaponIcon(opt.name);
+    if (t === 'tome') return getTomeIcon(opt.name);
+    return getItemIcon(opt.name);
   };
 
   return (
     <div className={`relative ${className}`} ref={containerRef} onKeyDown={handleKeyDown}>
-      {/* Trigger Button */}
+      {/* Trigger Button styled like a Megabonk 3D Stone Slot */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={variant === 'inline'
-          ? `w-full flex items-center justify-between gap-2 bg-transparent border-b ${isOpen ? 'border-amber-400' : 'border-zinc-800 hover:border-zinc-500'} py-2 text-left transition-all cursor-pointer`
-          : `w-full flex items-center justify-between gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] hover:border-white/[0.16] rounded-xl px-3 py-2 text-left transition-all cursor-pointer backdrop-blur-md ${
-              isOpen ? 'ring-1 ring-amber-400 border-amber-400 bg-white/[0.08]' : ''
-            } ${size === 'lg' ? 'py-2.5 text-sm' : 'text-xs'}`
-        }
+        className={`w-full flex items-center justify-between gap-2 mb-input px-2.5 py-1.5 text-left transition-all cursor-pointer hover:border-[#ffe600] ${
+          isOpen ? 'border-[#ffe600]' : ''
+        } ${size === 'lg' ? 'py-2 text-base' : 'text-sm'}`}
       >
         <div className="flex items-center gap-2 min-w-0">
           {selectedOption ? (
             <>
-              {getTypeIcon(selectedOption.type)}
-              <span className="font-semibold text-zinc-100 truncate">
+              <span className="w-6 h-6 mb-slot-blue flex items-center justify-center text-xs shrink-0">
+                {getOptionEmoji(selectedOption)}
+              </span>
+              <span className="font-bold text-[#ffe600] truncate">
                 {selectedOption.name}
               </span>
-              {selectedOption.rarity && (
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${getRarityBadgeClass(selectedOption.rarity)}`}>
-                  {selectedOption.rarity}
-                </span>
-              )}
             </>
           ) : (
-            <span className="text-zinc-500 italic">{placeholder}</span>
+            <span className="text-zinc-400 italic">{placeholder}</span>
           )}
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-amber-400' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-zinc-300 shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180 text-[#ffe600]' : ''}`} />
       </button>
 
-      {/* Popover / Dropdown */}
+      {/* Megabonk Framed Popover Window */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#0c0c0e]/95 border border-white/[0.12] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-100">
-          {/* Search Box Header */}
-          <div className="p-2.5 border-b border-white/[0.06] bg-white/[0.02]">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 mb-window overflow-hidden animate-in fade-in zoom-in-95 duration-100 min-w-[270px]">
+          {/* Pine-Green Search Header */}
+          <div className="mb-window-header flex-col items-stretch gap-2 !p-2.5">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-zinc-300" />
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Search upgrade..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-8 pr-7 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 transition-colors"
+                className="w-full mb-input pl-8 pr-7 py-1 text-xs text-white placeholder-zinc-400 focus:outline-none"
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-2 text-zinc-400 hover:text-white"
+                  className="absolute right-2 top-1.5 text-zinc-300 hover:text-white cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Quick Category Filter Pills */}
             {categoryFilterEnabled && (
-              <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-white/[0.06] text-[10px] flex-wrap">
+              <div className="flex items-center gap-1 text-[11px] flex-wrap">
                 {['ALL', 'TOME', 'WEAPON', 'ITEM'].map(cat => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setActiveTab(cat)}
-                    className={`px-2.5 py-0.5 rounded-full font-semibold transition-all cursor-pointer ${
+                    className={`px-2 py-0.5 font-bold uppercase cursor-pointer border ${
                       activeTab === cat
-                        ? 'bg-amber-400 text-slate-950 shadow-sm'
-                        : 'bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-200'
+                        ? 'bg-[#2471db] text-[#ffe600] border-white'
+                        : 'bg-[#16191d] text-zinc-300 border-[#525860] hover:text-white'
                     }`}
                   >
-                    {cat === 'ALL' ? 'All' : cat === 'TOME' ? '📖 Tomes' : cat === 'WEAPON' ? '⚔️ Weapons' : '💎 Items'}
+                    {cat === 'ALL' ? 'ALL' : cat === 'TOME' ? '📖 TOMES' : cat === 'WEAPON' ? '⚔️ WEAPONS' : '🎁 ITEMS'}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Options List */}
-          <div ref={listRef} className="max-h-60 overflow-y-auto p-1 divide-y divide-white/[0.04]">
+          {/* Options List (Leaderboard Alternating Rows) */}
+          <div ref={listRef} className="max-h-64 overflow-y-auto divide-y divide-[#2f343a]">
             {filteredOptions.length === 0 ? (
-              <div className="p-4 text-center text-xs text-zinc-500 font-mono">
-                No matching options found for "<span className="text-amber-400 font-bold">{search}</span>"
+              <div className="p-4 text-center text-xs text-zinc-400">
+                No matching options found for "<span className="text-[#ffe600] font-bold">{search}</span>"
               </div>
             ) : (
               filteredOptions.map((opt, idx) => {
@@ -222,47 +199,42 @@ export default function SearchableSelect({
                     key={opt.name + idx}
                     onClick={() => handleSelect(opt)}
                     onMouseEnter={() => setHighlightedIndex(idx)}
-                    className={`p-2 rounded-xl flex items-start justify-between gap-2 cursor-pointer transition-all ${
+                    className={`p-2 flex items-start justify-between gap-2 cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-amber-400/15 text-amber-300'
+                        ? 'mb-row-highlight'
                         : isHighlighted
-                        ? 'bg-white/[0.08] text-white'
-                        : 'text-zinc-300 hover:bg-white/[0.03]'
+                        ? 'bg-[#2a3442]'
+                        : idx % 2 === 0
+                        ? 'mb-row-odd'
+                        : 'mb-row-even'
                     }`}
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        {getTypeIcon(opt.type)}
-                        <span className={`text-xs font-bold truncate ${isSelected ? 'text-amber-400' : 'text-zinc-100'}`}>
-                          {opt.name}
-                        </span>
-                        {opt.rarity && (
-                          <span className={`text-[9px] font-mono px-1 py-0.2 rounded border ${getRarityBadgeClass(opt.rarity)}`}>
-                            {opt.rarity}
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                      <span className={`w-7 h-7 flex items-center justify-center text-sm shrink-0 ${
+                        isSelected ? 'mb-slot-blue' : 'mb-slot'
+                      }`}>
+                        {getOptionEmoji(opt)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-bold text-[#ffe600] truncate">
+                            {opt.name}
                           </span>
-                        )}
-                        {opt.tier && (
-                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-white/[0.06] text-zinc-400">
-                            Tier {opt.tier}
+                          <span className="text-[10px] font-mono uppercase px-1 bg-black/40 text-zinc-300 border border-[#4a4f57]">
+                            {opt.type}
                           </span>
+                        </div>
+
+                        {showDescription && (opt.desc || opt.description || opt.passive) && (
+                          <p className="text-[11px] text-white mt-0.5 line-clamp-1">
+                            {opt.desc || opt.description || opt.passive}
+                          </p>
                         )}
                       </div>
-
-                      {showDescription && (opt.desc || opt.description || opt.passive) && (
-                        <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
-                          {opt.desc || opt.description || opt.passive}
-                        </p>
-                      )}
-
-                      {opt.affectedBy && opt.affectedBy.length > 0 && (
-                        <p className="text-[9px] text-amber-500/80 font-mono mt-0.5 truncate">
-                          Scales with: {opt.affectedBy.join(', ')}
-                        </p>
-                      )}
                     </div>
 
                     {isSelected && (
-                      <Check className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-[#2ee619] shrink-0 mt-1" />
                     )}
                   </div>
                 );

@@ -182,7 +182,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-zinc-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 relative">
+    <div className="min-h-screen mb-world-bg text-white flex flex-col font-game selection:bg-[#ffe600] selection:text-black relative">
       {/* Header */}
       <Header
         activeTab={activeTab}
@@ -193,16 +193,16 @@ export default function App() {
         setPurpose={setPurpose}
       />
 
-      {/* Apple-style Floating Toast Pill */}
+      {/* Megabonk In-Game Quest Banner Toast */}
       {notification && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-zinc-900/90 backdrop-blur-2xl text-zinc-100 px-5 py-2 rounded-full font-medium shadow-2xl border border-white/[0.12] text-xs flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span>{notification}</span>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 mb-quest-box px-5 py-2.5 text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+          <span className="w-3 h-3 rounded-full bg-[#2ee619] border border-black shadow-sm"></span>
+          <span className="text-[#ffe600] font-bold tracking-wide">{notification}</span>
         </div>
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'advisor' && (
           <UpgradeAdvisor
             character={character}
@@ -266,14 +266,17 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] bg-black/40 py-8 px-4 text-center text-xs text-zinc-500 font-sans">
-        <p className="font-medium text-zinc-400">
-          Megabonk Build Optimizer Pro • 8-Bracket Multiplicative Roguelike Advisor
-        </p>
-        <p className="mt-1 text-zinc-600 font-mono text-[11px]">
-          Tome × Passive × Flat × Main % × Speed × AtkSpd × Crit/Overcrit × AoE/Projectiles
-        </p>
+      {/* Authentic Megabonk Game Footer & Version Stamp */}
+      <footer className="border-t-2 border-[#6c727a] bg-[#16191d]/95 py-4 px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-300">
+        <div className="flex items-center gap-2">
+          <span className="text-[#ffe600] font-bold">MEGABONK BUILD OPTIMIZER</span>
+          <span className="text-zinc-500">•</span>
+          <span>8-Bracket Multiplicative Calculation Engine</span>
+        </div>
+        <div className="flex items-center gap-4 font-mono text-xs text-white">
+          <span className="text-zinc-400">Tome × Passive × Flat × Main% × Speed × AtkSpd × Crit × AoE</span>
+          <span className="text-white font-bold">version 1.0.69</span>
+        </div>
       </footer>
     </div>
   );

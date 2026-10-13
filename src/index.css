@@ -2,70 +2,419 @@
 
 @layer base {
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
-    letter-spacing: -0.01em;
-    background-color: #060608;
-    color: #f4f4f5;
+    font-family: 'Almendra', Georgia, serif;
+    letter-spacing: 0.01em;
+    background-color: #134e68;
+    color: #ffffff;
+    text-shadow: 1px 1px 0px #000000;
+    overflow-x: hidden;
   }
+
   h1, h2, h3, h4, .font-heading {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
-    letter-spacing: -0.025em;
+    font-family: 'Almendra', 'MedievalSharp', Georgia, serif;
+    letter-spacing: 0.03em;
+    text-shadow: 2px 2px 0px #000000;
   }
+
   .font-mono {
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-shadow: 1px 1px 0px #000000;
   }
 }
 
-/* Apple-style subtle ambient glow */
-@keyframes ambient-pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.03);
-  }
+/* ==========================================================================
+   AUTHENTIC MEGABONK WORLD BACKDROP (TWILIGHT BLUE SKY + FOREST HILLS)
+   ========================================================================== */
+.mb-world-bg {
+  background-color: #155c7a;
+  background-image:
+    /* Subtle twilight stars in upper sky */
+    radial-gradient(2px 2px at 12% 8%, rgba(255, 255, 255, 0.45) 50%, transparent 100%),
+    radial-gradient(2px 2px at 28% 14%, rgba(255, 255, 255, 0.35) 50%, transparent 100%),
+    radial-gradient(2px 2px at 64% 6%, rgba(255, 255, 255, 0.4) 50%, transparent 100%),
+    radial-gradient(2px 2px at 82% 12%, rgba(255, 255, 255, 0.45) 50%, transparent 100%),
+    radial-gradient(2px 2px at 46% 18%, rgba(255, 255, 255, 0.25) 50%, transparent 100%),
+    /* Voxel grass checkerboard pattern on lower ground */
+    repeating-conic-gradient(from 0deg, rgba(0, 0, 0, 0.06) 0% 25%, transparent 0% 50%),
+    /* Main Sky -> Forest Horizon -> Mossy Grass Hill Gradient */
+    linear-gradient(
+      180deg,
+      #1c7c9c 0%,
+      #166584 26%,
+      #104d68 48%,
+      #163826 60%,
+      #25481d 72%,
+      #1e3b17 86%,
+      #162c11 100%
+    );
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 32px 32px, 100% 100%;
+  background-attachment: fixed;
 }
 
-.animate-glow-gold {
-  animation: pulse-glow 2.5s infinite ease-in-out;
+/* ==========================================================================
+   MEGABONK TYPOGRAPHY & TEXT SHADOWS
+   ========================================================================== */
+.font-game {
+  font-family: 'Almendra', 'MedievalSharp', Georgia, serif;
 }
 
-/* Custom scrollbar */
+.font-game-display {
+  font-family: 'MedievalSharp', 'Almendra', Georgia, serif;
+}
+
+.mb-logo-text {
+  font-family: 'Chakra Petch', 'Silkscreen', sans-serif;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000,
+     0px  4px 0 #000;
+}
+
+.mb-text-shadow {
+  text-shadow: 2px 2px 0px #000000;
+}
+
+.mb-text-shadow-sm {
+  text-shadow: 1px 1px 0px #000000;
+}
+
+.text-mb-yellow {
+  color: #ffe600;
+  text-shadow: 2px 2px 0px #000000;
+}
+
+/* ==========================================================================
+   AUTHENTIC MEGABONK METALLic-BEVEL WINDOW FRAMES (.mb-window)
+   Matches CHARACTER SELECTION, LEADERBOARDS, and Megachad Inspector panels
+   ========================================================================== */
+.mb-window {
+  position: relative;
+  background-color: rgba(31, 34, 38, 0.96);
+  border: 2px solid #a3a9b0;
+  outline: 2px solid #0b0d0f;
+  box-shadow:
+    inset 0 0 0 2px #3b3f45,
+    0 12px 28px rgba(0, 0, 0, 0.75);
+}
+
+/* Silver corner rivets on windows */
+.mb-window::before,
+.mb-window::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  height: 6px;
+  pointer-events: none;
+  z-index: 10;
+  background-image:
+    linear-gradient(90deg, #d4d8dd 0px, #d4d8dd 6px, transparent 6px, transparent calc(100% - 6px), #d4d8dd calc(100% - 6px), #d4d8dd 100%);
+  filter: drop-shadow(0 0 1px #000);
+}
+.mb-window::before {
+  top: -4px;
+}
+.mb-window::after {
+  bottom: -4px;
+}
+
+/* Pine-Green Window Title Header (CHARACTER SELECTION / LEADERBOARDS) */
+.mb-window-header {
+  background: linear-gradient(180deg, #2d473e 0%, #21362f 100%);
+  border-bottom: 2px solid #91979e;
+  box-shadow:
+    0 2px 0 #0e1012,
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* Dark Sub-Tab Strip (like GLOBAL | FRIENDS in LEADERBOARDS) */
+.mb-subtab-bar {
+  display: flex;
+  background-color: #131518;
+  border-bottom: 2px solid #3c4046;
+}
+
+.mb-subtab {
+  padding: 0.55rem 1.1rem;
+  font-family: 'Almendra', Georgia, serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  text-shadow: 1px 1px 0 #000;
+  border-right: 1px solid #2a2d32;
+  transition: all 0.12s ease;
+  cursor: pointer;
+}
+
+.mb-subtab:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.mb-subtab-active {
+  background-color: #23272c;
+  color: #ffffff;
+  box-shadow: inset 0 2px 0 #ffe600;
+}
+
+/* ==========================================================================
+   AUTHENTIC 3D RAISED BUTTONS (PLAY / UNLOCKS / CONFIRM)
+   ========================================================================== */
+.mb-btn-stone {
+  position: relative;
+  background: linear-gradient(180deg, #52565e 0%, #43474e 100%);
+  border-top: 2px solid #7c818a;
+  border-left: 2px solid #7c818a;
+  border-right: 2px solid #2c2f34;
+  border-bottom: 5px solid #222428;
+  outline: 2px solid #0b0c0e;
+  border-radius: 5px;
+  color: #ffffff;
+  font-family: 'Almendra', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 2px 2px 0px #000000;
+  transition: transform 0.08s ease, filter 0.12s ease;
+  cursor: pointer;
+}
+
+.mb-btn-stone:hover {
+  background: linear-gradient(180deg, #5e636c 0%, #4d5159 100%);
+  color: #ffe600;
+}
+
+.mb-btn-stone:active {
+  transform: translateY(2px);
+  border-bottom-width: 3px;
+}
+
+/* Active Stone Button with Gold / Blue tint */
+.mb-btn-stone-active {
+  background: linear-gradient(180deg, #3288f6 0%, #236AD4 100%);
+  border-top: 2px solid #7cc0ff;
+  border-left: 2px solid #7cc0ff;
+  border-right: 2px solid #194b96;
+  border-bottom: 5px solid #133973;
+  outline: 2px solid #0b0c0e;
+  color: #ffffff;
+}
+
+/* Royal Blue CONFIRM Button (Exact match to Screenshot 1 CONFIRM button) */
+.mb-btn-blue {
+  position: relative;
+  background: linear-gradient(180deg, #348bf7 0%, #2471db 100%);
+  border-top: 2px solid #78beff;
+  border-left: 2px solid #78beff;
+  border-right: 2px solid #1c53a1;
+  border-bottom: 5px solid #16407d;
+  outline: 2px solid #0b0c0e;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: 'Almendra', Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 0px #000000;
+  transition: transform 0.08s ease, filter 0.12s ease;
+  cursor: pointer;
+}
+
+.mb-btn-blue:hover {
+  filter: brightness(1.1);
+}
+
+.mb-btn-blue:active {
+  transform: translateY(2px);
+  border-bottom-width: 3px;
+}
+
+/* Red Close / Danger Button */
+.mb-btn-red {
+  position: relative;
+  background: linear-gradient(180deg, #e03131 0%, #b91c1c 100%);
+  border-top: 2px solid #ff8787;
+  border-left: 2px solid #ff8787;
+  border-right: 2px solid #7f1d1d;
+  border-bottom: 4px solid #5c1313;
+  outline: 2px solid #0b0c0e;
+  border-radius: 5px;
+  color: #ffffff;
+  font-family: 'Almendra', Georgia, serif;
+  font-weight: 700;
+  text-shadow: 2px 2px 0px #000000;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   WHITE L-SHAPED CORNER TARGETING RETICLES (Megachad / PLAY selection ticks)
+   ========================================================================== */
+.mb-reticle {
+  position: relative;
+}
+
+.mb-reticle::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  pointer-events: none;
+  z-index: 20;
+  background:
+    /* Top-left L */
+    linear-gradient(to right, #ffffff 8px, transparent 8px) 0 0 / 100% 2px no-repeat,
+    linear-gradient(to bottom, #ffffff 8px, transparent 8px) 0 0 / 2px 100% no-repeat,
+    /* Top-right L */
+    linear-gradient(to left, #ffffff 8px, transparent 8px) 100% 0 / 100% 2px no-repeat,
+    linear-gradient(to bottom, #ffffff 8px, transparent 8px) 100% 0 / 2px 100% no-repeat,
+    /* Bottom-left L */
+    linear-gradient(to right, #ffffff 8px, transparent 8px) 0 100% / 100% 2px no-repeat,
+    linear-gradient(to top, #ffffff 8px, transparent 8px) 0 100% / 2px 100% no-repeat,
+    /* Bottom-right L */
+    linear-gradient(to left, #ffffff 8px, transparent 8px) 100% 100% / 100% 2px no-repeat,
+    linear-gradient(to top, #ffffff 8px, transparent 8px) 100% 100% / 2px 100% no-repeat;
+  filter: drop-shadow(1px 1px 0px #000) drop-shadow(-1px -1px 0px #000);
+}
+
+/* ==========================================================================
+   SQUARE METALLIC ICON SLOTS & PORTRAIT TILES (Aura / Flex / Skin / Heroes)
+   ========================================================================== */
+.mb-slot {
+  background: radial-gradient(circle, #353b44 0%, #1c1f24 100%);
+  border: 2px solid #a3a9b0;
+  outline: 1px solid #000000;
+  box-shadow: inset 0 0 0 1px #141619;
+}
+
+.mb-slot-blue {
+  background: radial-gradient(circle, #489bff 0%, #1d56a8 100%);
+  border: 2px solid #c0c6ce;
+  outline: 1px solid #000000;
+  box-shadow: inset 0 0 0 1px #0f2c59;
+}
+
+.mb-slot-red {
+  background: radial-gradient(circle, #dc2626 0%, #691010 100%);
+  border: 2px solid #a3a9b0;
+  outline: 1px solid #000000;
+  box-shadow: inset 0 0 0 1px #2b0707;
+}
+
+.mb-slot-gold {
+  background: radial-gradient(circle, #eab308 0%, #78350f 100%);
+  border: 2px solid #fde047;
+  outline: 1px solid #000000;
+  box-shadow: inset 0 0 0 1px #3b1906;
+}
+
+/* ==========================================================================
+   QUEST TRACKER BOXES & RECESSED PROGRESS BARS (Top-left of Screenshot 2)
+   ========================================================================== */
+.mb-quest-box {
+  background-color: rgba(28, 33, 40, 0.94);
+  border: 2px solid #9198a1;
+  outline: 1px solid #0a0c0e;
+  box-shadow: inset 0 0 0 1px #2f353d, 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.mb-progress-track {
+  background-color: #0b0d0f;
+  border: 1px solid #333840;
+  height: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mb-progress-fill-green {
+  background: linear-gradient(180deg, #47ff30 0%, #26c912 100%);
+  height: 100%;
+}
+
+.mb-progress-fill-blue {
+  background: linear-gradient(180deg, #4db2ff 0%, #1f7ae0 100%);
+  height: 100%;
+}
+
+.mb-progress-fill-gold {
+  background: linear-gradient(180deg, #ffe600 0%, #ca8a04 100%);
+  height: 100%;
+}
+
+/* ==========================================================================
+   LEADERBOARD STRIPED ROWS (Right side of Screenshot 2)
+   ========================================================================== */
+.mb-row-odd {
+  background-color: rgba(255, 255, 255, 0.035);
+}
+
+.mb-row-even {
+  background-color: rgba(0, 0, 0, 0.22);
+}
+
+.mb-row-highlight {
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.24) 0%, rgba(234, 179, 8, 0.14) 100%);
+  border-top: 1px solid rgba(255, 230, 0, 0.35);
+  border-bottom: 1px solid rgba(255, 230, 0, 0.35);
+}
+
+/* Input & Select Recessed Fields */
+.mb-input {
+  background-color: #14171a;
+  border: 2px solid #6c727a;
+  outline: 1px solid #000000;
+  color: #ffffff;
+  font-family: 'Almendra', Georgia, serif;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.mb-input:focus {
+  border-color: #ffe600;
+}
+
+/* Range Sliders styled like Megabonk bars */
+input[type="range"].mb-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  background: #0b0d0f;
+  border: 1px solid #525860;
+  outline: 1px solid #000;
+  cursor: pointer;
+}
+
+input[type="range"].mb-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 20px;
+  background: linear-gradient(180deg, #ffe600 0%, #ca8a04 100%);
+  border: 2px solid #ffffff;
+  outline: 1px solid #000;
+  cursor: pointer;
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #141619;
+  border-left: 1px solid #2e3238;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: #484c54;
+  border: 1px solid #7c828a;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
-}
-
-/* Rarity badge colors */
-.rarity-common {
-  color: #a1a1aa;
-  border-color: #3f3f46;
-  background-color: rgba(39, 39, 42, 0.4);
-}
-.rarity-uncommon {
-  color: #60a5fa;
-  border-color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.15);
-}
-.rarity-rare {
-  color: #c084fc;
-  border-color: #9333ea;
-  background-color: rgba(147, 51, 234, 0.15);
-}
-.rarity-legendary {
-  color: #fbbf24;
-  border-color: #d97706;
-  background-color: rgba(217, 119, 6, 0.18);
+  background: #5c616b;
 }

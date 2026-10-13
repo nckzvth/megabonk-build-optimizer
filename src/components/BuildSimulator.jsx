@@ -1,26 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import {
-  User,
-  Swords,
-  BookOpen,
-  Package,
-  Activity,
-  Shield,
-  Zap,
-  Crosshair,
-  Heart,
-  TrendingUp,
-  Plus,
   Trash2,
-  Sliders,
   ChevronDown,
   ChevronUp,
-  Info,
-  Flame,
-  Ban,
-  AlertTriangle,
-  Sparkles,
-  ArrowRight
+  Ban
 } from 'lucide-react';
 import { characters, weapons, tomes, items } from '../data/megabonkData.js';
 import {
@@ -28,6 +11,7 @@ import {
   calculateDynamicTierLists,
   calculateBanList
 } from '../engine/optimizer.js';
+import { getCharacterPortrait, getWeaponIcon, getTomeIcon, getItemIcon } from '../data/gameUiIcons.js';
 
 export default function BuildSimulator({
   character,
@@ -48,8 +32,9 @@ export default function BuildSimulator({
   const [itemSearch, setItemSearch] = useState('');
   const [selectedRarity, setSelectedRarity] = useState('ALL');
   const [activeStrategyTab, setActiveStrategyTab] = useState('shrines');
+  const [showFullCharGrid, setShowFullCharGrid] = useState(true);
 
-  // Calculate Shrine Priorities (15 discrete blessings)
+  // Calculate Shrine Priorities (18 authentic in-game stats offered at shrines)
   const shrinePriorities = useMemo(() => {
     const detailed = calculateDetailedStatPriorities(buildState, purpose);
     return detailed.shrineStats || [];
@@ -122,11 +107,10 @@ export default function BuildSimulator({
     }
   };
 
-  // Stats
   const stats = buildState?.stats || {};
   const brackets = buildState?.brackets || {};
+  const heroPortrait = getCharacterPortrait(character);
 
-  // Filter items in catalog
   const filteredCatalogItems = items.filter(it => {
     const matchesSearch = it.name.toLowerCase().includes(itemSearch.toLowerCase()) ||
                           it.description.toLowerCase().includes(itemSearch.toLowerCase());
@@ -135,673 +119,542 @@ export default function BuildSimulator({
   });
 
   return (
-    <div className="max-w-6xl mx-auto py-4 space-y-12">
-      {/* 1. TOP EDITORIAL BANNER */}
-      <div className="pb-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold block mb-1">
-            Pro Creative Studio
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Build Simulator & Telemetry
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-1 font-light">
-            Live mathematical sandbox with 8-bracket multiplicative damage calculation.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
-          <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500 uppercase tracking-wider text-[11px]">Goal:</span>
-            <select
-              value={purpose || 'leaderboard'}
-              onChange={(e) => setPurpose && setPurpose(e.target.value)}
-              className="bg-transparent border-b border-zinc-700 hover:border-zinc-400 text-amber-300 font-bold focus:outline-none cursor-pointer py-0.5 text-xs"
-            >
-              <option value="leaderboard" className="bg-zinc-950 text-zinc-200">👑 Leaderboard God</option>
-              <option value="dps_pure" className="bg-zinc-950 text-zinc-200">⚔️ Glass Cannon</option>
-              <option value="balanced" className="bg-zinc-950 text-zinc-200">🛡️ Balanced</option>
-              <option value="tank_thorns" className="bg-zinc-950 text-zinc-200">🗿 Immortal Tank</option>
-              <option value="crit_burst" className="bg-zinc-950 text-zinc-200">🎯 Overcrit Burst</option>
-              <option value="speed_farming" className="bg-zinc-950 text-zinc-200">⚡ Economy Farm</option>
-            </select>
-          </div>
-          <span className="text-zinc-600 hidden sm:inline">•</span>
-          <span className="text-white font-bold">{character}</span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-amber-400 font-semibold">Lv. {level}</span>
-        </div>
-      </div>
-
-      {/* 2. APPLE STUDIO WORKBENCH (TWO OPEN ARCHITECTURAL PANES, ZERO CARDS) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* LEFT PANE: Arsenal & Loadout Controls (7 Cols) */}
-        <div className="lg:col-span-7 space-y-10 lg:border-r border-white/[0.08] lg:pr-10">
-          {/* A. HERO & PROGRESSION */}
-          <div className="space-y-4">
-            <div className="flex items-baseline justify-between">
-              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                Hero Selection & Progression
-              </span>
-              <span className="text-xs font-mono text-amber-400 font-bold">
-                Level {level} / 100
-              </span>
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* 1. SPLIT GAME WINDOWS: CHARACTER SELECTION & ARSENAL (LEFT) + MEGACHAD-STYLE TELEMETRY INSPECTOR (RIGHT) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT WINDOW (Cols 1-7): CHARACTER SELECTION & ARSENAL LOADOUT */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* A. AUTHENTIC CHARACTER SELECTION WINDOW (Matches Screenshot 1 Left Panel) */}
+          <div className="mb-window">
+            <div className="mb-window-header">
+              <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-white">
+                CHARACTER SELECTION
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowFullCharGrid(!showFullCharGrid)}
+                className="mb-btn-stone px-2.5 py-0.5 text-xs uppercase"
+              >
+                {showFullCharGrid ? 'Compact View' : 'Show Portrait Grid'}
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-1">
-              <div>
-                <label className="text-[11px] text-zinc-400 uppercase font-mono block mb-1">
-                  Active Hero
-                </label>
+            <div className="p-4 space-y-4">
+              {showFullCharGrid ? (
+                /* Authentic 4-Column / 5-Column Metallic Portrait Grid with White Corner Reticles */
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5">
+                  {characters.map((c) => {
+                    const isSelected = c.name.toLowerCase() === character.toLowerCase();
+                    const p = getCharacterPortrait(c.name);
+                    return (
+                      <button
+                        key={c.id || c.name}
+                        type="button"
+                        onClick={() => setCharacter(c.name)}
+                        className={`flex flex-col border-2 border-[#a3a9b0] outline-1 outline-black transition-transform cursor-pointer ${
+                          isSelected ? 'mb-reticle scale-[1.02]' : 'hover:brightness-110'
+                        }`}
+                      >
+                        <div className={`w-full h-14 flex items-center justify-center text-2xl bg-gradient-to-b ${
+                          isSelected ? 'from-[#3b82f6] to-[#1d4ed8]' : 'from-[#2e3540] to-[#1b1f26]'
+                        }`}>
+                          {p.emoji}
+                        </div>
+                        <div className={`w-full py-1 px-1 text-center text-xs font-bold truncate border-t border-[#7c828a] ${
+                          isSelected ? 'bg-[#173978] text-[#ffe600]' : 'bg-[#1a1d21] text-white'
+                        }`}>
+                          {c.name}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
                 <select
                   value={character}
                   onChange={(e) => setCharacter(e.target.value)}
-                  className="w-full bg-transparent border-b border-zinc-700 hover:border-zinc-400 text-white font-bold py-1.5 text-sm focus:outline-none cursor-pointer transition-colors"
+                  className="w-full mb-input px-3 py-2 text-sm font-bold text-[#ffe600] cursor-pointer"
                 >
                   {characters.map(c => (
-                    <option key={c.name} value={c.name} className="bg-zinc-950 text-white">
-                      {c.name} (Starts: {c.startingWeapon})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between text-[11px] text-zinc-400 uppercase font-mono mb-1">
-                  <span>Level Track</span>
-                  <div className="flex items-center gap-1.5 font-mono">
-                    <button
-                      type="button"
-                      onClick={() => setLevel(Math.max(1, level - 1))}
-                      disabled={level <= 1}
-                      className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                      title="Level Down (-1)"
-                      aria-label="Level Down (-1)"
-                    >
-                      <ChevronDown className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-amber-400 font-bold font-sans text-sm min-w-10 text-center">
-                      Lv. {level}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setLevel(Math.min(100, level + 1))}
-                      disabled={level >= 100}
-                      className="w-5 h-5 rounded-full bg-white/[0.06] hover:bg-white/[0.15] active:scale-95 text-zinc-300 hover:text-white flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                      title="Level Up (+1)"
-                      aria-label="Level Up (+1)"
-                    >
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={level}
-                  onChange={(e) => setLevel(parseInt(e.target.value))}
-                  className="w-full accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full mt-2"
-                />
-                <div className="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
-                  <button onClick={() => setLevel(1)} className="hover:text-zinc-300 cursor-pointer">1 (Start)</button>
-                  <button onClick={() => setLevel(25)} className="hover:text-zinc-300 cursor-pointer">25 (Mid)</button>
-                  <button onClick={() => setLevel(50)} className="hover:text-zinc-300 cursor-pointer">50 (Boss)</button>
-                  <button onClick={() => setLevel(100)} className="hover:text-zinc-300 cursor-pointer">100 (Endless)</button>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-2 text-xs text-zinc-400 font-light leading-relaxed">
-              <span className="text-amber-400 font-medium">Hero Passive: </span>
-              {buildState?.character?.passive}
-            </div>
-          </div>
-
-          {/* B. WEAPONS DECK (4 SLOTS) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                  Weapons Deck
-                </span>
-                <span className="text-xs font-mono text-white font-bold">
-                  ({currentWeapons.length}/4)
-                </span>
-              </div>
-
-              {currentWeapons.length < 4 && (
-                <select
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleAddWeapon(e.target.value);
-                      e.target.value = '';
-                    }
-                  }}
-                  defaultValue=""
-                  className="bg-transparent border-b border-zinc-700 text-amber-400 text-xs font-semibold py-1 focus:outline-none cursor-pointer"
-                >
-                  <option value="" disabled className="bg-zinc-950 text-zinc-500">+ Add Weapon</option>
-                  {weapons.map(w => (
-                    <option key={w.name} value={w.name} className="bg-zinc-950 text-white">
-                      {w.name} ({w.category})
+                    <option key={c.name} value={c.name} className="bg-[#1c1e22] text-white">
+                      {c.name} (Starter: {c.startingWeapon})
                     </option>
                   ))}
                 </select>
               )}
             </div>
-
-            <div className="divide-y divide-white/[0.06]">
-              {currentWeapons.map((w, idx) => {
-                const resolved = buildState?.weapons?.find(rw => rw.name.toLowerCase() === w.name.toLowerCase());
-                return (
-                  <div key={w.name + idx} className="py-3.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
-                        <span className="font-bold text-sm text-white flex items-center gap-1.5">
-                          ⚔️ {w.name}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-mono text-emerald-400 font-bold">
-                          {resolved?.dps ? resolved.dps.toFixed(0) : '0'} DPS
-                        </span>
-                        <span className="text-xs font-mono text-zinc-400">
-                          Lv. {w.level}
-                        </span>
-                        {currentWeapons.length > 1 && (
-                          <button
-                            onClick={() => handleRemoveWeapon(idx)}
-                            className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
-                            title="Remove weapon"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={w.level}
-                        onChange={(e) => handleWeaponLevelChange(idx, e.target.value)}
-                        className="flex-1 accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
-                      />
-                      <span className="text-[10px] font-mono text-zinc-500 shrink-0">
-                        Scales: {(resolved?.affectedBy || []).slice(0, 3).join(', ')}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
-          {/* C. TOMES DECK (4 SLOTS) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                  Tomes Deck
-                </span>
-                <span className="text-xs font-mono text-white font-bold">
-                  ({currentTomes.length}/4)
-                </span>
-              </div>
-
-              {currentTomes.length < 4 && (
-                <select
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleAddTome(e.target.value);
-                      e.target.value = '';
-                    }
-                  }}
-                  defaultValue=""
-                  className="bg-transparent border-b border-zinc-700 text-amber-400 text-xs font-semibold py-1 focus:outline-none cursor-pointer"
-                >
-                  <option value="" disabled className="bg-zinc-950 text-zinc-500">+ Add Tome</option>
-                  {tomes.map(t => (
-                    <option key={t.name} value={t.name} className="bg-zinc-950 text-white">
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+          {/* B. WEAPONS & TOMES ARSENAL WINDOW (Aura / Flex Icon-Slot Style) */}
+          <div className="mb-window">
+            <div className="mb-window-header">
+              <h2 className="text-lg font-bold uppercase tracking-wider text-white">
+                EQUIPPED WEAPONS ({currentWeapons.length}/4) & TOMES ({currentTomes.length}/4)
+              </h2>
+              <span className="text-xs font-mono text-[#ffe600]">MAX 4 SLOTS EACH</span>
             </div>
 
-            <div className="divide-y divide-white/[0.06]">
-              {currentTomes.length === 0 ? (
-                <div className="py-4 text-xs text-zinc-500 font-mono italic">
-                  No tomes equipped. Add up to 4 tomes to activate multiplicative scaling.
+            <div className="p-4 space-y-6">
+              {/* Weapons Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-[#3d424a] pb-1.5">
+                  <span className="text-sm font-bold uppercase text-[#ffe600]">
+                    ⚔️ Active Weapons ({currentWeapons.length}/4)
+                  </span>
+                  {currentWeapons.length < 4 && (
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleAddWeapon(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                      defaultValue=""
+                      className="mb-input px-2 py-0.5 text-xs text-[#ffe600] font-bold cursor-pointer"
+                    >
+                      <option value="" disabled className="bg-[#1c1e22] text-zinc-400">+ Equip Weapon...</option>
+                      {weapons.map(w => (
+                        <option key={w.name} value={w.name} className="bg-[#1c1e22] text-white">
+                          {w.name} ({w.category})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
-              ) : (
-                currentTomes.map((t, idx) => (
-                  <div key={t.name + idx} className="py-3.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-zinc-600 font-bold">0{idx + 1}</span>
-                        <span className="font-bold text-sm text-white flex items-center gap-1.5">
-                          📖 {t.name}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-mono text-amber-400 font-bold">
-                          Tier {t.level}
-                        </span>
+                <div className="space-y-2.5">
+                  {currentWeapons.map((w, idx) => {
+                    const resolved = buildState?.weapons?.find(rw => rw.name.toLowerCase() === w.name.toLowerCase());
+                    return (
+                      <div key={w.name + idx} className="p-2.5 bg-[#171a1e] border border-[#6c727a] flex items-center gap-3">
+                        <div className="w-11 h-11 mb-slot-blue flex items-center justify-center text-xl shrink-0">
+                          {getWeaponIcon(w.name)}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-base text-[#ffe600] truncate">
+                              {w.name}
+                            </span>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-xs font-mono text-[#2ee619] font-bold">
+                                {resolved?.dps ? resolved.dps.toFixed(0) : '0'} DPS
+                              </span>
+                              <span className="text-xs font-mono text-white font-bold">
+                                Lv.{w.level}
+                              </span>
+                              {currentWeapons.length > 1 && (
+                                <button
+                                  onClick={() => handleRemoveWeapon(idx)}
+                                  className="text-zinc-400 hover:text-red-400 cursor-pointer"
+                                  title="Remove weapon"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="range"
+                              min="1"
+                              max="10"
+                              value={w.level}
+                              onChange={(e) => handleWeaponLevelChange(idx, e.target.value)}
+                              className="flex-1 mb-slider"
+                            />
+                            <span className="text-[11px] text-zinc-300 truncate max-w-[160px]">
+                              Scales: {(resolved?.affectedBy || []).slice(0, 3).join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tomes Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-[#3d424a] pb-1.5">
+                  <span className="text-sm font-bold uppercase text-[#ffe600]">
+                    📖 Equipped Tomes ({currentTomes.length}/4)
+                  </span>
+                  {currentTomes.length < 4 && (
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleAddTome(e.target.value);
+                          e.target.value = '';
+                        }
+                      }}
+                      defaultValue=""
+                      className="mb-input px-2 py-0.5 text-xs text-[#ffe600] font-bold cursor-pointer"
+                    >
+                      <option value="" disabled className="bg-[#1c1e22] text-zinc-400">+ Equip Tome...</option>
+                      {tomes.map(t => (
+                        <option key={t.name} value={t.name} className="bg-[#1c1e22] text-white">
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                <div className="space-y-2.5">
+                  {currentTomes.map((t, idx) => (
+                    <div key={t.name + idx} className="p-2.5 bg-[#171a1e] border border-[#6c727a] flex items-center gap-3">
+                      <div className="w-11 h-11 mb-slot-red flex items-center justify-center text-xl shrink-0">
+                        {getTomeIcon(t.name)}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-base text-[#ffe600] truncate">
+                            {t.name}
+                          </span>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="text-xs font-mono text-white font-bold">
+                              Tier {t.level}
+                            </span>
+                            <button
+                              onClick={() => handleRemoveTome(idx)}
+                              className="text-zinc-400 hover:text-red-400 cursor-pointer"
+                              title="Remove tome"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          value={t.level}
+                          onChange={(e) => handleTomeLevelChange(idx, e.target.value)}
+                          className="w-full mb-slider"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Items Inventory Row (Matches 'Skin' square slot row in Screenshot 1) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-[#3d424a] pb-1.5">
+                  <span className="text-sm font-bold uppercase text-[#ffe600]">
+                    🎁 Inventory Items ({currentItems.reduce((acc, i) => acc + i.count, 0)} Stacked)
+                  </span>
+                </div>
+
+                {/* Square Metallic Item Slots (Skin Row Style) */}
+                {currentItems.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {currentItems.map((it) => (
+                      <div
+                        key={it.name}
+                        className="mb-slot px-2.5 py-1.5 flex items-center gap-2 text-xs"
+                      >
+                        <span className="text-base">{getItemIcon(it.name)}</span>
+                        <span className="font-bold text-white">{it.name}</span>
+                        <span className="font-mono text-[#ffe600] font-bold">x{it.count}</span>
                         <button
-                          onClick={() => handleRemoveTome(idx)}
-                          className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
-                          title="Remove tome"
+                          onClick={() => handleRemoveItem(it.name)}
+                          className="text-zinc-400 hover:text-red-400 font-bold ml-1 cursor-pointer"
+                          title="Remove 1 stack"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          ✕
                         </button>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={t.level}
-                        onChange={(e) => handleTomeLevelChange(idx, e.target.value)}
-                        className="flex-1 accent-amber-400 cursor-pointer h-1 bg-zinc-800 rounded-full"
-                      />
-                      <span className="text-[10px] font-mono text-zinc-500 shrink-0">
-                        Multiplier Bracket
-                      </span>
-                    </div>
+                    ))}
                   </div>
-                ))
-              )}
-            </div>
-          </div>
+                ) : (
+                  <p className="text-xs text-zinc-400 italic">No items equipped.</p>
+                )}
 
-          {/* D. ACTIVE ITEMS INVENTORY & CATALOG PICKER */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                Items Inventory ({currentItems.reduce((acc, i) => acc + i.count, 0)})
-              </span>
-            </div>
-
-            {/* Active Items Pills */}
-            {currentItems.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {currentItems.map((it) => (
-                  <div
-                    key={it.name}
-                    className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs"
-                  >
-                    <span className="font-medium text-white">{it.name}</span>
-                    <span className="font-mono text-amber-400 font-bold">x{it.count}</span>
-                    <button
-                      onClick={() => handleRemoveItem(it.name)}
-                      className="text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer ml-1"
+                {/* Quick Item Search & Add */}
+                <div className="pt-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Search 78 items to add..."
+                      value={itemSearch}
+                      onChange={(e) => setItemSearch(e.target.value)}
+                      className="flex-1 mb-input px-2.5 py-1 text-xs text-white"
+                    />
+                    <select
+                      value={selectedRarity}
+                      onChange={(e) => setSelectedRarity(e.target.value)}
+                      className="mb-input px-2 py-1 text-xs text-[#ffe600] font-bold cursor-pointer"
                     >
-                      ×
-                    </button>
+                      <option value="ALL" className="bg-[#1c1e22]">All Rarities</option>
+                      <option value="Common" className="bg-[#1c1e22]">Common</option>
+                      <option value="Uncommon" className="bg-[#1c1e22]">Uncommon</option>
+                      <option value="Rare" className="bg-[#1c1e22]">Rare</option>
+                      <option value="Legendary" className="bg-[#1c1e22]">Legendary</option>
+                    </select>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-zinc-500 font-mono italic">No items currently equipped in inventory.</p>
-            )}
 
-            {/* Catalog Search & Add */}
-            <div className="pt-2 space-y-3">
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder="Search item to equip..."
-                  value={itemSearch}
-                  onChange={(e) => setItemSearch(e.target.value)}
-                  className="flex-1 bg-transparent border-b border-zinc-700 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400 transition-colors"
-                />
-                <select
-                  value={selectedRarity}
-                  onChange={(e) => setSelectedRarity(e.target.value)}
-                  className="bg-transparent border-b border-zinc-700 py-1.5 text-xs text-zinc-400 focus:outline-none cursor-pointer"
-                >
-                  <option value="ALL" className="bg-zinc-950">All Rarities</option>
-                  <option value="Common" className="bg-zinc-950">Common</option>
-                  <option value="Uncommon" className="bg-zinc-950">Uncommon</option>
-                  <option value="Rare" className="bg-zinc-950">Rare</option>
-                  <option value="Legendary" className="bg-zinc-950">Legendary</option>
-                </select>
-              </div>
-
-              <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] border-y border-white/[0.06]">
-                {filteredCatalogItems.slice(0, 12).map((it) => (
-                  <div
-                    key={it.name}
-                    onClick={() => handleAddItem(it.name)}
-                    className="flex items-center justify-between py-2 hover:bg-white/[0.02] transition-colors cursor-pointer text-xs"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="font-medium text-white">{it.name}</span>
-                      <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                        {it.rarity}
-                      </span>
-                    </div>
-                    <span className="text-xs font-mono text-amber-400 hover:text-white font-semibold">
-                      + Add to Run
-                    </span>
+                  <div className="max-h-40 overflow-y-auto divide-y divide-[#2d3138] border border-[#5a6068]">
+                    {filteredCatalogItems.slice(0, 12).map((it, idx) => (
+                      <div
+                        key={it.name}
+                        onClick={() => handleAddItem(it.name)}
+                        className={`px-3 py-1.5 flex items-center justify-between cursor-pointer text-xs hover:bg-[#2a3340] ${
+                          idx % 2 === 0 ? 'mb-row-odd' : 'mb-row-even'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{getItemIcon(it.name)}</span>
+                          <span className="font-bold text-white">{it.name}</span>
+                          <span className="text-[10px] font-mono text-zinc-400 uppercase">{it.rarity}</span>
+                        </div>
+                        <span className="text-[#ffe600] font-bold font-mono">+ Equip</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT PANE: Live Telemetry & Engine Inspector (5 Cols) */}
-        <div className="lg:col-span-5 space-y-10">
-          {/* A. HEADLINE POWER OUTPUT (BIG KEYNOTE NUMBERS) */}
-          <div className="space-y-4">
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500 block">
-              Calculated Power Output
-            </span>
-
-            <div className="grid grid-cols-2 gap-6 py-4 border-y border-white/[0.08] font-mono">
-              <div>
-                <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Total Output DPS</div>
-                <div className="text-4xl font-extrabold text-emerald-400 mt-1">
-                  {buildState?.totalDps ? buildState.totalDps.toFixed(0) : '0'}
-                </div>
-                <div className="text-xs text-zinc-500 mt-0.5">composite damage</div>
-              </div>
-
-              <div>
-                <div className="text-[11px] text-zinc-500 uppercase tracking-widest">Effective HP</div>
-                <div className="text-4xl font-extrabold text-cyan-400 mt-1">
-                  {buildState?.ehp ? buildState.ehp.toFixed(0) : '0'}
-                </div>
-                <div className="text-xs text-zinc-500 mt-0.5">survival buffer</div>
-              </div>
+        {/* RIGHT WINDOW (Cols 8-12): MEGACHAD-STYLE CHARACTER & TELEMETRY INSPECTOR */}
+        <div className="lg:col-span-5 mb-window p-5 space-y-5">
+          {/* Top Character Portrait + Rank + Level Steppers (Matches Screenshot 1 Right Panel) */}
+          <div className="flex items-start gap-4">
+            <div className="w-20 h-20 mb-slot-blue mb-reticle flex items-center justify-center text-4xl shrink-0">
+              {heroPortrait.emoji}
             </div>
-          </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-white tracking-wide truncate">
+                  {character}
+                </h2>
+                <select
+                  value={purpose || 'leaderboard'}
+                  onChange={(e) => setPurpose && setPurpose(e.target.value)}
+                  className="mb-input px-2 py-0.5 text-xs text-[#ffe600] font-bold cursor-pointer"
+                >
+                  <option value="leaderboard" className="bg-[#1c1e22]">👑 Leaderboard</option>
+                  <option value="dps_pure" className="bg-[#1c1e22]">⚔️ Glass Cannon</option>
+                  <option value="balanced" className="bg-[#1c1e22]">🛡️ Balanced</option>
+                  <option value="tank_thorns" className="bg-[#1c1e22]">🗿 Immortal Tank</option>
+                  <option value="crit_burst" className="bg-[#1c1e22]">🎯 Overcrit</option>
+                  <option value="speed_farming" className="bg-[#1c1e22]">⚡ Speed Farm</option>
+                </select>
+              </div>
 
-          {/* B. COMBAT TELEMETRY SPEC SHEET */}
-          <div className="space-y-3">
-            <span className="text-xs font-mono uppercase tracking-widest text-zinc-500 block">
-              Combat Telemetry Specs
-            </span>
+              {/* Rank / Level + Singular Up/Down Steppers */}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white font-bold flex items-center gap-1">
+                  <span className="text-[#38bdf8]">❖</span> Rank / Level {level}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLevel(Math.max(1, level - 1))}
+                    disabled={level <= 1}
+                    className="mb-btn-stone w-5 h-5 flex items-center justify-center disabled:opacity-30"
+                    title="Level Down (-1)"
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLevel(Math.min(100, level + 1))}
+                    disabled={level >= 100}
+                    className="mb-btn-stone w-5 h-5 flex items-center justify-center disabled:opacity-30"
+                    title="Level Up (+1)"
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
 
-            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08] text-xs font-mono">
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Max Hitpoints</span>
-                <span className="font-bold text-white">{stats.maxHp ? stats.maxHp.toFixed(0) : 100}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Armor Reduction</span>
-                <span className="font-bold text-white">{stats.armor ? stats.armor.toFixed(0) : 0}%</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Evasion Rate</span>
-                <span className="font-bold text-white">{stats.evasion ? stats.evasion.toFixed(0) : 0}%</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">HP Sustain / sec</span>
-                <span className="font-bold text-emerald-400">+{buildState?.sustainPerSec?.toFixed(1) || '0.0'}/s</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Critical Strike Chance</span>
-                <span className="font-bold text-amber-400">
-                  {stats.critChance ? stats.critChance.toFixed(0) : 5}%
-                  {stats.critChance > 100 && (
-                    <span className="text-[10px] ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-400/10 text-amber-300 font-bold">
-                      OVERCRIT
-                    </span>
-                  )}
+              {/* Cyan Rank Progress Bar */}
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={level}
+                onChange={(e) => setLevel(parseInt(e.target.value))}
+                className="w-full mb-slider"
+              />
+
+              {/* DPS & EHP Summary Line */}
+              <div className="flex items-center justify-between text-xs font-mono pt-0.5">
+                <span className="text-[#2ee619] font-bold">
+                  ⚔️ {buildState?.totalDps ? buildState.totalDps.toFixed(0) : '0'} DPS
+                </span>
+                <span className="text-[#38bdf8] font-bold">
+                  🛡️ {buildState?.ehp ? buildState.ehp.toFixed(0) : '0'} EHP
                 </span>
               </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Critical Damage Multiplier</span>
-                <span className="font-bold text-amber-400">{stats.critDamage ? stats.critDamage.toFixed(2) : 2.0}x</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Attack Speed Ratio</span>
-                <span className="font-bold text-white">{stats.attackSpeed ? stats.attackSpeed.toFixed(0) : 100}%</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Bonus Projectiles</span>
-                <span className="font-bold text-white">+{stats.projectileCount || 1}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Movement Speed</span>
-                <span className="font-bold text-white">{stats.movementSpeed ? (stats.movementSpeed * 100).toFixed(0) : 100}%</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-zinc-400 font-sans">Luck Factor</span>
-                <span className="font-bold text-purple-400">{stats.luck ? stats.luck.toFixed(0) : 0}%</span>
-              </div>
             </div>
           </div>
 
-          {/* C. MULTIPLICATIVE DAMAGE BRACKETS (8 BRACKETS) */}
-          <div className="space-y-4">
+          {/* Character Passive Description */}
+          <p className="text-xs text-white border-y border-[#3d424a] py-2.5 leading-relaxed">
+            <span className="text-[#ffe600] font-bold">Passive: </span>
+            {buildState?.character?.passive}
+          </p>
+
+          {/* Combat Telemetry Leaderboard Rows */}
+          <div className="space-y-1.5">
+            <div className="text-xs font-bold uppercase tracking-wider text-[#ffe600]">
+              LIVE CHARACTER STATS
+            </div>
+            <div className="border border-[#5a6068] divide-y divide-[#2b2f36] text-xs font-mono">
+              {[
+                { label: 'Max Hitpoints', val: `${stats.maxHp ? stats.maxHp.toFixed(0) : 100} HP`, color: 'text-white' },
+                { label: 'Shield Buffer', val: `${stats.shield ? stats.shield.toFixed(0) : 0}`, color: 'text-[#38bdf8]' },
+                { label: 'Armor Reduction', val: `${stats.armor ? stats.armor.toFixed(0) : 0}%`, color: 'text-white' },
+                { label: 'Evasion Rate', val: `${stats.evasion ? stats.evasion.toFixed(0) : 0}%`, color: 'text-white' },
+                { label: 'HP Sustain / sec', val: `+${buildState?.sustainPerSec?.toFixed(1) || '0.0'}/s`, color: 'text-[#2ee619]' },
+                { label: 'Crit Chance', val: `${stats.critChance ? stats.critChance.toFixed(0) : 5}% ${stats.critChance > 100 ? '(OVERCRIT)' : ''}`, color: 'text-[#ffe600]' },
+                { label: 'Crit Damage', val: `${stats.critDamage ? stats.critDamage.toFixed(2) : 2.0}x`, color: 'text-[#ffe600]' },
+                { label: 'Attack Speed', val: `${stats.attackSpeed ? stats.attackSpeed.toFixed(0) : 100}%`, color: 'text-white' },
+                { label: 'Bonus Projectiles', val: `+${stats.projectileCount || 1}`, color: 'text-white' },
+                { label: 'Movement Speed', val: `${stats.movementSpeed ? (stats.movementSpeed * 100).toFixed(0) : 100}%`, color: 'text-white' },
+                { label: 'Luck Factor', val: `${stats.luck ? stats.luck.toFixed(0) : 0}%`, color: 'text-[#2ee619]' },
+              ].map((row, idx) => (
+                <div
+                  key={row.label}
+                  className={`flex justify-between px-3 py-1.5 ${idx % 2 === 0 ? 'mb-row-odd' : 'mb-row-even'}`}
+                >
+                  <span className="text-zinc-200 font-game">{row.label}</span>
+                  <span className={`font-bold ${row.color}`}>{row.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 8 Multiplicative Brackets (Styled like Top-Left Quest Trackers in Screenshot 2) */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">
-                Multiplicative Brackets
+              <span className="text-xs font-bold uppercase tracking-wider text-[#ffe600]">
+                8-BRACKET MULTIPLIERS
               </span>
-              <span className="text-xs font-mono text-emerald-400 font-bold">
+              <span className="text-xs font-mono text-[#2ee619] font-bold">
                 {buildState?.damageMultiplier ? buildState.damageMultiplier.toFixed(1) : '1.0'}x Total
               </span>
             </div>
 
-            <p className="text-xs text-zinc-400 font-light leading-relaxed">
-              Separate categories multiply together. Spread upgrades across brackets to defeat diminishing returns.
-            </p>
-
-            <div className="space-y-3 font-mono text-xs">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B1: Damage Tome</span>
-                  <span className="font-bold text-amber-400">{brackets.b1_damageTome?.toFixed(2)}x</span>
+            <div className="space-y-2">
+              {[
+                { name: 'B1: Damage Tome', val: brackets.b1_damageTome || 1 },
+                { name: 'B2: Hero Passive', val: brackets.b2_passive || 1 },
+                { name: 'B3: Flat Item Damage', val: brackets.b3_flatItems || 1 },
+                { name: 'B4: Main Damage %', val: brackets.b4_mainDamage || 1 },
+                { name: 'B6: Attack Speed', val: brackets.b6_attackSpeed || 1 },
+                { name: 'B7: Crit Expectation', val: brackets.b7_crit || 1 },
+              ].map((b) => (
+                <div key={b.name} className="p-2 bg-[#16191d] border border-[#5a6068]">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-[#ffe600] font-bold">{b.name}</span>
+                    <span className="text-[#2ee619] font-mono font-bold">{b.val.toFixed(2)}x</span>
+                  </div>
+                  <div className="mb-progress-track">
+                    <div
+                      className="mb-progress-fill-green"
+                      style={{ width: `${Math.min(100, b.val * 35)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b1_damageTome || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B2: Character Passive</span>
-                  <span className="font-bold text-amber-400">{brackets.b2_passive?.toFixed(2)}x</span>
-                </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b2_passive || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B3: Flat Item Damage</span>
-                  <span className="font-bold text-amber-400">{brackets.b3_flatItems?.toFixed(2)}x</span>
-                </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b3_flatItems || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B4: Main Damage %</span>
-                  <span className="font-bold text-amber-400">{brackets.b4_mainDamage?.toFixed(2)}x</span>
-                </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b4_mainDamage || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B6: Attack Speed</span>
-                  <span className="font-bold text-amber-400">{brackets.b6_attackSpeed?.toFixed(2)}x</span>
-                </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-cyan-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b6_attackSpeed || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-zinc-400">B7: Crit Expectation</span>
-                  <span className="font-bold text-amber-400">{brackets.b7_crit?.toFixed(2)}x</span>
-                </div>
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-purple-400 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (brackets.b7_crit || 1) * 35)}%` }}
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 3. LIVE STRATEGY DIRECTIVES: SHRINE PRIORITY, ITEM PRIORITY & ALWAYS BAN LIST */}
-      <div className="pt-8 border-t border-white/[0.08] space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
-              Live Tactical Directives
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-              Optimization Directives & Priority Lists
+      {/* 2. BOTTOM LEADERBOARDS-STYLE WINDOW: SHRINE STATS, ITEM PRIORITIES & ALWAYS BAN LIST */}
+      <div className="mb-window">
+        <div className="mb-window-header flex-wrap">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-white">
+              SHRINE STAT PRIORITIES, ITEM HUNT & ALWAYS BAN LIST
             </h2>
-            <p className="text-xs text-zinc-400 font-sans">
-              Mathematical priority rankings dynamically calibrated to your active hero, equipped weapons, and build purpose.
-            </p>
           </div>
-
-          {/* Segmented Tab Switcher */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="inline-flex p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setActiveStrategyTab('shrines')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeStrategyTab === 'shrines'
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <span>⛩️ Shrine Stats</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
-                  {shrinePriorities.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStrategyTab('items')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeStrategyTab === 'items'
-                    ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <span>🎁 Item Priorities</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
-                  {itemPriorities.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveStrategyTab('ban_list')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeStrategyTab === 'ban_list'
-                    ? 'bg-rose-500 text-white font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                <Ban className="w-3.5 h-3.5" />
-                <span>ALWAYS Ban List</span>
-                {banList.length > 0 && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-black/20">
-                    {banList.length}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
+          <span className="text-xs font-mono text-[#ffe600] font-bold">
+            CALIBRATED FOR {(purpose || 'leaderboard').toUpperCase()}
+          </span>
         </div>
 
-        {/* CONTENT FOR TAB 1: SHRINE PRIORITIES */}
+        {/* Sub-Tabs (Matches GLOBAL | FRIENDS in Screenshot 2 LEADERBOARDS) */}
+        <div className="mb-subtab-bar flex-wrap">
+          <button
+            type="button"
+            onClick={() => setActiveStrategyTab('shrines')}
+            className={`mb-subtab ${activeStrategyTab === 'shrines' ? 'mb-subtab-active' : ''}`}
+          >
+            ⛩️ SHRINE STATS ({shrinePriorities.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStrategyTab('items')}
+            className={`mb-subtab ${activeStrategyTab === 'items' ? 'mb-subtab-active' : ''}`}
+          >
+            🎁 ITEM PRIORITIES ({itemPriorities.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStrategyTab('ban_list')}
+            className={`mb-subtab flex items-center gap-1.5 ${activeStrategyTab === 'ban_list' ? 'mb-subtab-active !text-red-400' : ''}`}
+          >
+            <Ban className="w-3.5 h-3.5 text-red-400" />
+            <span>ALWAYS BAN LIST ({banList.length})</span>
+          </button>
+        </div>
+
+        {/* TAB 1: SHRINE STAT UPGRADE PRIORITIES (AUTHENTIC IN-GAME STATS) */}
         {activeStrategyTab === 'shrines' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
-              <span>SHRINE STAT UPGRADE PRIORITIES (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
-              <span>{shrinePriorities.length} SHRINE STAT OPTIONS</span>
+          <div>
+            <div className="grid grid-cols-12 px-4 py-2 bg-[#141619] border-b border-[#3a3f46] text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <div className="col-span-1">RANK</div>
+              <div className="col-span-6">SHRINE STAT OFFERING</div>
+              <div className="col-span-3 text-right">GAIN (DPS / EHP)</div>
+              <div className="col-span-2 text-right">SCORE</div>
             </div>
-            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+
+            <div className="divide-y divide-[#2c3036]">
               {shrinePriorities.map((shrine, idx) => {
                 const isTop3 = idx < 3;
                 return (
                   <div
                     key={shrine.id}
-                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    className={`grid grid-cols-12 items-center px-4 py-2.5 text-xs sm:text-sm ${
+                      isTop3 ? 'mb-row-highlight' : idx % 2 === 0 ? 'mb-row-odd' : 'mb-row-even'
+                    }`}
                   >
-                    <div className="flex items-start sm:items-center gap-3">
-                      <span className="font-mono text-xs text-zinc-600 font-bold min-w-6">
-                        0{idx + 1}
+                    <div className="col-span-1 font-mono font-bold text-white">
+                      #{idx + 1}
+                    </div>
+                    <div className="col-span-6 flex items-center gap-3 pr-2">
+                      <span className={`w-8 h-8 flex items-center justify-center text-base shrink-0 ${
+                        isTop3 ? 'mb-slot-blue' : 'mb-slot'
+                      }`}>
+                        {shrine.icon}
                       </span>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base">{shrine.icon}</span>
-                          <span className={`font-bold ${isTop3 ? 'text-amber-400' : 'text-white'}`}>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-bold ${isTop3 ? 'text-[#ffe600]' : 'text-white'}`}>
                             {shrine.name}
                           </span>
-                          <span className="font-mono text-zinc-300 font-semibold px-1.5 py-0.5 rounded bg-white/[0.04]">
+                          <span className="font-mono text-xs px-1.5 py-0.2 bg-black/50 border border-[#5a6068] text-[#38bdf8] font-bold">
                             {shrine.inGameLabel}
                           </span>
-                          {isTop3 && (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-300 font-bold">
-                              TOP PICK
-                            </span>
-                          )}
                         </div>
-                        <p className="text-[11px] text-zinc-400 font-sans max-w-2xl">
+                        <p className="text-xs text-zinc-300 truncate max-w-xl">
                           {shrine.shrineAdvice || shrine.description}
                         </p>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-5 font-mono text-xs shrink-0 self-end sm:self-center">
-                      <span className="text-emerald-400 font-semibold">
-                        +{shrine.dpsGainPct.toFixed(1)}% DPS
-                      </span>
-                      <span className="text-cyan-400">
-                        +{shrine.ehpGainPct.toFixed(1)}% EHP
-                      </span>
-                      <span className="text-amber-400 font-bold min-w-14 text-right">
-                        {shrine.compositeScore.toFixed(0)} pts
-                      </span>
+                    <div className="col-span-3 text-right font-mono text-xs">
+                      <span className="text-[#2ee619] font-bold mr-3">+{shrine.dpsGainPct.toFixed(1)}% DPS</span>
+                      <span className="text-[#38bdf8] font-bold">+{shrine.ehpGainPct.toFixed(1)}% EHP</span>
+                    </div>
+                    <div className="col-span-2 text-right font-mono font-bold text-[#ffe600]">
+                      {shrine.compositeScore.toFixed(0)} pts
                     </div>
                   </div>
                 );
@@ -810,63 +663,64 @@ export default function BuildSimulator({
           </div>
         )}
 
-        {/* CONTENT FOR TAB 2: ITEM PRIORITIES */}
+        {/* TAB 2: ITEM PRIORITIES */}
         {activeStrategyTab === 'items' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
-              <span>KEY S & A TIER ITEMS TO HUNT (RANKED FOR {(purpose || 'leaderboard').toUpperCase()})</span>
-              <span>TOP {itemPriorities.length} SCALING ITEMS</span>
+          <div>
+            <div className="grid grid-cols-12 px-4 py-2 bg-[#141619] border-b border-[#3a3f46] text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <div className="col-span-1">RANK</div>
+              <div className="col-span-6">ITEM NAME & EFFECT</div>
+              <div className="col-span-3 text-right">GAIN (DPS / EHP)</div>
+              <div className="col-span-2 text-right">ACTION</div>
             </div>
-            <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
+
+            <div className="divide-y divide-[#2c3036]">
               {itemPriorities.map((item, idx) => {
                 const isEquipped = currentItems.some(i => i.name.toLowerCase() === item.name.toLowerCase());
                 const isS = idx < 10;
                 return (
                   <div
                     key={item.name}
-                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    className={`grid grid-cols-12 items-center px-4 py-2.5 text-xs sm:text-sm ${
+                      isEquipped ? 'mb-row-highlight' : idx % 2 === 0 ? 'mb-row-odd' : 'mb-row-even'
+                    }`}
                   >
-                    <div className="flex items-start sm:items-center gap-3">
-                      <span className="font-mono text-xs text-zinc-600 font-bold min-w-6">
-                        {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                    <div className="col-span-1 font-mono font-bold text-white">
+                      #{idx + 1}
+                    </div>
+                    <div className="col-span-6 flex items-center gap-3 pr-2">
+                      <span className={`w-8 h-8 flex items-center justify-center text-base shrink-0 ${
+                        isS ? 'mb-slot-blue' : 'mb-slot'
+                      }`}>
+                        {getItemIcon(item.name)}
                       </span>
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold ${isS ? 'text-amber-400' : 'text-zinc-200'}`}>
-                            {item.name}
-                          </span>
-                          <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-white/[0.04] uppercase">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-[#ffe600]">{item.name}</span>
+                          <span className="font-mono text-[10px] px-1.5 bg-black/50 border border-[#5a6068] text-white uppercase">
                             {item.rarity}
                           </span>
-                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${isS ? 'bg-amber-400/15 text-amber-300' : 'bg-purple-400/15 text-purple-300'}`}>
-                            Tier {isS ? 'S' : 'A'}
-                          </span>
                           {isEquipped && (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 font-bold">
+                            <span className="font-mono text-[10px] px-1.5 bg-[#2ee619]/20 border border-[#2ee619] text-[#2ee619] font-bold">
                               EQUIPPED
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-zinc-400 font-sans max-w-2xl">
+                        <p className="text-xs text-zinc-300 truncate max-w-xl">
                           {item.rationale || item.description}
                         </p>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-5 font-mono text-xs shrink-0 self-end sm:self-center">
-                      <span className="text-emerald-400 font-semibold">
-                        +{item.dpsGainPct.toFixed(1)}% DPS
-                      </span>
-                      <span className="text-cyan-400">
-                        +{item.ehpGainPct.toFixed(1)}% EHP
-                      </span>
-                      <span className="text-amber-400 font-bold min-w-14 text-right">
-                        {item.score.toFixed(0)} pts
+                    <div className="col-span-3 text-right font-mono text-xs">
+                      <span className="text-[#2ee619] font-bold mr-3">+{item.dpsGainPct.toFixed(1)}% DPS</span>
+                      <span className="text-[#38bdf8] font-bold">+{item.ehpGainPct.toFixed(1)}% EHP</span>
+                    </div>
+                    <div className="col-span-2 text-right flex items-center justify-end gap-2">
+                      <span className="font-mono font-bold text-[#ffe600] text-xs">
+                        {item.score.toFixed(0)}
                       </span>
                       <button
                         onClick={() => handleAddItem(item.name)}
-                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.04] hover:bg-amber-400 hover:text-slate-950 text-zinc-300 transition-all cursor-pointer"
-                        title="Equip this item into your inventory"
+                        className="mb-btn-blue px-2.5 py-1 text-xs uppercase"
                       >
                         + Equip
                       </button>
@@ -878,77 +732,51 @@ export default function BuildSimulator({
           </div>
         )}
 
-        {/* CONTENT FOR TAB 3: ALWAYS BAN LIST */}
+        {/* TAB 3: ALWAYS BAN LIST */}
         {activeStrategyTab === 'ban_list' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs font-mono text-zinc-500 pb-2">
-              <span>ACTIVE BLACKLIST DIRECTIVES ({banList.length} ITEMS & UPGRADES)</span>
-              <span className="text-rose-400">SEAL AT ALTAR / SKIP IN ROLLS</span>
+          <div>
+            <div className="grid grid-cols-12 px-4 py-2 bg-[#141619] border-b border-[#3a3f46] text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              <div className="col-span-2">SEVERITY</div>
+              <div className="col-span-7">BANNED ITEM / TOME & ANTI-SYNERGY REASON</div>
+              <div className="col-span-3 text-right">DIRECTIVE</div>
             </div>
-            {banList.length === 0 ? (
-              <div className="py-8 text-center text-xs text-zinc-500 font-mono italic border-y border-white/[0.08]">
-                No critical anti-synergies detected for your current loadout.
-              </div>
-            ) : (
-              <div className="divide-y divide-white/[0.06] border-y border-white/[0.08]">
-                {banList.map((ban, idx) => {
-                  const isCritical = ban.severity === 'CRITICAL';
-                  const isWarning = ban.severity === 'WARNING';
-                  return (
-                    <div
-                      key={ban.id || idx}
-                      className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="pt-0.5">
-                          {isCritical ? (
-                            <span className="text-rose-400 text-sm">🛑</span>
-                          ) : isWarning ? (
-                            <span className="text-amber-400 text-sm">⚠️</span>
-                          ) : (
-                            <span className="text-zinc-500 text-sm">🗑️</span>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className={`font-bold text-sm ${isCritical ? 'text-rose-400' : isWarning ? 'text-amber-300' : 'text-zinc-300'}`}>
-                              {ban.name}
-                            </span>
-                            <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-white/[0.04]">
-                              {ban.type}
-                            </span>
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
-                              isCritical
-                                ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                                : isWarning
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                : 'bg-zinc-700/30 text-zinc-400'
-                            }`}>
-                              {ban.badge}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-zinc-400 font-sans max-w-2xl leading-relaxed">
-                            {ban.reason}
-                          </p>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase ${
-                          isCritical
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                            : isWarning
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            : 'bg-white/[0.04] text-zinc-400'
-                        }`}>
-                          {ban.action}
-                        </span>
-                      </div>
+            <div className="divide-y divide-[#2c3036]">
+              {banList.map((ban, idx) => {
+                const isCritical = ban.severity === 'CRITICAL';
+                return (
+                  <div
+                    key={ban.id || idx}
+                    className={`grid grid-cols-12 items-center px-4 py-3 text-xs sm:text-sm ${
+                      idx % 2 === 0 ? 'mb-row-odd' : 'mb-row-even'
+                    }`}
+                  >
+                    <div className="col-span-2">
+                      <span className={`font-mono text-xs px-2 py-0.5 font-bold border ${
+                        isCritical
+                          ? 'bg-red-900/60 text-red-200 border-red-400'
+                          : 'bg-amber-900/50 text-[#ffe600] border-[#ffe600]'
+                      }`}>
+                        {ban.badge}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                    <div className="col-span-7 pr-3">
+                      <div className="font-bold text-[#ffe600] text-sm">
+                        {ban.name} <span className="text-xs font-mono text-zinc-400">({ban.type})</span>
+                      </div>
+                      <p className="text-xs text-white mt-0.5">
+                        {ban.reason}
+                      </p>
+                    </div>
+                    <div className="col-span-3 text-right">
+                      <span className="mb-btn-red px-3 py-1 text-xs uppercase inline-block">
+                        {ban.action}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
